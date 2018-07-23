@@ -31,5 +31,4 @@ set(SOURCE_FILES
 		src/aux.h
 		)
 
-add_executable(c_light_wallet ${SOURCE_FILES})
 add_library(iota_wallet STATIC ${SOURCE_FILES})
