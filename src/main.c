@@ -32,7 +32,7 @@ void main(int argc, char *argv[]){
 
 }
 
-void print_help() {
+void print_help(void) {
 	printf("Usage c_light_wallet <SEED_81_CHARS> SECURITY INDEX COUNT\n");
 }
 
