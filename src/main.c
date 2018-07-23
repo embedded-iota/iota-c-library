@@ -7,10 +7,11 @@
 #include "iota/conversion.h"
 #include "iota/addresses.h"
 
-void main(int argc, char *argv[]){
+int main(int argc, char *argv[]){
 
 	if (argc != 5) {
-		return print_help();
+		print_help();
+		return 0;
 	}
 
 	int security = (int)strtol(argv[2], NULL, 10);
@@ -30,13 +31,14 @@ void main(int argc, char *argv[]){
 
 	printf("%s", addresses);
 
+	return 0;
 }
 
-void print_help(void) {
-	printf("Usage c_light_wallet <SEED_81_CHARS> SECURITY INDEX COUNT\n");
+int print_help(void) {
+	return printf("Usage c_light_wallet <SEED_81_CHARS> SECURITY INDEX COUNT\n");
 }
 
-void address(char* seed_chars, int index, int security, char result[81]) {
+int address(char* seed_chars, int index, int security, char result[81]) {
 	
 	unsigned char address[81];
 	unsigned char seed_bytes[48];
@@ -44,4 +46,6 @@ void address(char* seed_chars, int index, int security, char result[81]) {
 	get_public_addr(seed_bytes, index, security, address);
 	
 	bytes_to_chars(address, result, 48);
+
+	return 0;
 }

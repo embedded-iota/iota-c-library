@@ -31,5 +31,5 @@
 
 #endif // MAIN_H
 
-void print_help(void);
-void address(char* seedChars, int index, int security, char* result);
+int print_help(void);
+int address(char* seedChars, int index, int security, char* result);
