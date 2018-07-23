@@ -15,8 +15,7 @@ int main(int argc, char *argv[]){
 	if (argc != 5) {
 		return print_help();
 	}
-
-	int num;
+	
 	int security = (int)strtol(argv[2], NULL, 10);
 	int index = (int)strtol(argv[3], NULL, 10);
 	int count = (int)strtol(argv[4], NULL, 10);
