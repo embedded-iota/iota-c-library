@@ -30,3 +30,6 @@
 
 
 #endif // MAIN_H
+
+void print_help();
+void address(char* seedChars, int index, int security, char* result);

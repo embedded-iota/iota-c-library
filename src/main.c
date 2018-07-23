@@ -7,15 +7,12 @@
 #include "iota/conversion.h"
 #include "iota/addresses.h"
 
-int print_help();
-void address(char* seedChars, int index, int security, char* result);
-
-int main(int argc, char *argv[]){
+void main(int argc, char *argv[]){
 
 	if (argc != 5) {
 		return print_help();
 	}
-	
+
 	int security = (int)strtol(argv[2], NULL, 10);
 	int index = (int)strtol(argv[3], NULL, 10);
 	int count = (int)strtol(argv[4], NULL, 10);
@@ -32,13 +29,11 @@ int main(int argc, char *argv[]){
 
 
 	printf("%s", addresses);
-	
-	return 0;
+
 }
 
-int print_help() {
+void print_help() {
 	printf("Usage c_light_wallet <SEED_81_CHARS> SECURITY INDEX COUNT\n");
-	return 0;
 }
 
 void address(char* seed_chars, int index, int security, char result[81]) {
