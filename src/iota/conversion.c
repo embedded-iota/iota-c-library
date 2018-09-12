@@ -248,7 +248,7 @@ static bool bigint_set_last_trit_zero(uint32_t *bigint)
 static void trits_to_bigint(const trit_t *trits, uint32_t *bigint)
 {
     unsigned int ms_index = 0; // initialy there is no most significant word >0
-    os_memset(bigint, 0, 12 * sizeof(bigint[0]));
+    memset(bigint, 0, 12 * sizeof(bigint[0]));
 
     // ignore the 243th trit, as it cannot be fully represented in 48 bytes
     for (unsigned int i = 242; i-- > 0;) {
@@ -313,7 +313,7 @@ bool int64_to_trits(int64_t value, trit_t *trits, unsigned int num_trits)
         value = -value;
     }
 
-    os_memset(trits, 0, num_trits);
+    memset(trits, 0, num_trits);
 
     for (unsigned int i = 0; i < num_trits; i++) {
         if (value == 0) {
