@@ -97,7 +97,6 @@ static void increment_obsolete_tag(unsigned int tag_increment, TX_OBJECT *tx)
 
     // TODO: do we need to increment both? Probably only obsoleteTag...
     memcpy(tx->obsoleteTag, extended_tag, 27);
-    memcpy(tx->tag, extended_tag, 27);
 }
 
 static void set_bundle_hash(const BUNDLE_CTX *bundle_ctx, TX_OBJECT *txs,

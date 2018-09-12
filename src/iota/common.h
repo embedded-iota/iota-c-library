@@ -30,11 +30,6 @@
 /* -                         OS ALTERNATIVES                             - */
 /* ----------------------------------------------------------------------- */
 
-#define os_swap_u32 __builtin_bswap32
-
-#define os_memmove memmove
-#define os_memcpy memcpy
-
 #define os_memset memset
 
 /* ----------------------------------------------------------------------- */
