@@ -292,11 +292,11 @@ unsigned int bundle_finalize(BUNDLE_CTX *ctx)
         THROW(INVALID_STATE);
     }
 
-    while (!bundle_validate_hash(ctx)) {
+    /*while (!bundle_validate_hash(ctx)) {
         // increment the tag of the first transaction
         bytes_increment_trit_area_81(ctx->bytes + 48);
         tag_increment++;
-    }
+    }*/
 
     // the not normalized hash is already in the result pointer
     return tag_increment;
