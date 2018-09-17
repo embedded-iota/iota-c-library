@@ -9,7 +9,14 @@
 #include "signing.h"
 #include "../aux.h"
 
+#define ZERO_HASH                                                              \
+    "999999999999999999999999999999999999999999999999999999999999999999999999" \
+    "999999999"
 #define ZERO_TAG "999999999999999999999999999"
+
+static const TX_OBJECT DEFAULT_TX = {
+        {0},       ZERO_HASH, 0,        ZERO_TAG, 0, 0, 0,       ZERO_HASH,
+        ZERO_HASH, ZERO_HASH, ZERO_TAG, 0,        0, 0, ZERO_TAG};
 
 static char *int64_to_chars(int64_t value, char *chars, unsigned int num_trytes)
 {
@@ -93,6 +100,164 @@ static void increment_obsolete_tag(unsigned int tag_increment, TX_OUTPUT *tx)
     bytes_to_chars(tag_bytes, extended_tag, 48);
 
     memcpy(tx->tag, extended_tag, 27);
+}
+
+TX_OBJECT tx_object_buffer = {};
+
+void clear_tx_buffer(void){
+    char_copy(tx_object_buffer.address, ZERO_HASH, 81);
+    char_copy(tx_object_buffer.branchTransaction, ZERO_HASH, 81);
+    char_copy(tx_object_buffer.trunkTransaction, ZERO_HASH, 81);
+    char_copy(tx_object_buffer.bundle, ZERO_HASH, 81);
+    char_copy(tx_object_buffer.nonce, ZERO_TAG, 27);
+    char_copy(tx_object_buffer.tag, ZERO_TAG, 27);
+    char_copy(tx_object_buffer.obsoleteTag, ZERO_TAG, 27);
+
+    tx_object_buffer.timestamp = 0;
+    tx_object_buffer.value = 0;
+
+
+    for(unsigned int i = 0; i < 2187; i++){
+        tx_object_buffer.signatureMessageFragment[i] = '9';
+    }
+}
+
+void prepare_transfers_light(char *seed, uint8_t security, TX_OUTPUT *outputs,
+                             unsigned int num_outputs, TX_INPUT *inputs, unsigned int num_inputs,
+                             tx_receiver_t tx_receiver_func, bundle_hash_receiver bundle_receiver_func){
+    // TODO use a proper timestamp
+    const uint32_t timestamp = 0;
+    const unsigned int num_txs = num_outputs + num_inputs * security;
+    const unsigned int last_tx_index = num_txs - 1;
+
+    unsigned char seed_bytes[48];
+    chars_to_bytes(seed, seed_bytes, 81);
+
+
+    // create a secure bundle
+    BUNDLE_CTX bundle_ctx;
+    bundle_initialize(&bundle_ctx, last_tx_index);
+
+    // OUTPUT TX OBJECTS
+    int idx = 0;
+    for (unsigned int i = 0; i < num_outputs; i++) {
+
+        clear_tx_buffer();
+        // initialize with defaults
+        memcpy(&tx_object_buffer, &DEFAULT_TX, sizeof(TX_OBJECT));
+
+        rpad_chars(tx_object_buffer.signatureMessageFragment, outputs[i].message, 2187);
+        memcpy(tx_object_buffer.address, outputs[i].address, 81);
+        tx_object_buffer.value = outputs[i].value;
+        rpad_chars(tx_object_buffer.obsoleteTag, outputs[i].tag, 27);
+        tx_object_buffer.timestamp = timestamp;
+        tx_object_buffer.currentIndex = (uint32_t)idx;
+        tx_object_buffer.lastIndex = last_tx_index;
+        rpad_chars(tx_object_buffer.tag, outputs[i].tag, 27);
+
+        // Bundle
+        bundle_set_external_address(&bundle_ctx, tx_object_buffer.address);
+        //Todo: Really tag not obsolete tag?
+        bundle_add_tx(&bundle_ctx, tx_object_buffer.value, tx_object_buffer.tag, tx_object_buffer.timestamp);
+
+        if(tx_receiver_func(&tx_object_buffer)){
+            idx++;
+            continue;
+        }else{
+            break;
+        }
+    }
+
+    // INPUT TX_OBJECTS
+    for (unsigned int i = 0; i < num_inputs; i++) {
+
+        clear_tx_buffer();
+        // initialize with defaults
+        memcpy(&tx_object_buffer, &DEFAULT_TX, sizeof(TX_OBJECT));
+
+        char *address = tx_object_buffer.address;
+        get_address(seed_bytes, inputs[i].key_index, security, address);
+        tx_object_buffer.value = -inputs[i].balance;
+        tx_object_buffer.timestamp = timestamp;
+        tx_object_buffer.currentIndex = idx;
+        tx_object_buffer.lastIndex = last_tx_index;
+        idx++;
+
+        tx_receiver_func(&tx_object_buffer);
+
+
+        // Bundle
+        bundle_set_external_address(&bundle_ctx, tx_object_buffer.address);
+        //Todo: Really tag not obsolete tag?
+        bundle_add_tx(&bundle_ctx, tx_object_buffer.value, tx_object_buffer.tag, tx_object_buffer.timestamp);
+
+        // add meta transactions, signature
+        for (unsigned int j = 1; j < security; j++) {
+
+            clear_tx_buffer();
+            // initialize with defaults
+            memcpy(&tx_object_buffer, &DEFAULT_TX, sizeof(TX_OBJECT));
+
+            memcpy(tx_object_buffer.address, address, 81);
+            tx_object_buffer.value = 0;
+            tx_object_buffer.timestamp = timestamp;
+            tx_object_buffer.currentIndex = idx;
+            tx_object_buffer.lastIndex = last_tx_index;
+
+            // Bundle
+            bundle_set_external_address(&bundle_ctx, tx_object_buffer.address);
+            //Todo: Really tag not obsolete tag?
+            bundle_add_tx(&bundle_ctx, tx_object_buffer.value, tx_object_buffer.tag, tx_object_buffer.timestamp);
+
+
+            if(tx_receiver_func(&tx_object_buffer)){
+                idx++;
+                continue;
+            }else{
+                break;
+            }
+        }
+    }
+
+    uint32_t tag_increment = bundle_finalize(&bundle_ctx);
+    increment_obsolete_tag(tag_increment, &tx_object_buffer);
+
+    // sign the inputs
+    tryte_t normalized_bundle_hash[81];
+    bundle_get_normalized_hash(&bundle_ctx, normalized_bundle_hash);
+
+    for (unsigned int i = 0; i < num_inputs; i++) {
+        clear_tx_buffer();
+
+        SIGNING_CTX signing_ctx;
+        signing_initialize(&signing_ctx, seed_bytes, inputs[i].key_index,
+                           security, normalized_bundle_hash);
+
+        // Why outputs and not inputs?
+        unsigned int idx = num_outputs + i * security;
+
+        // exactly one fragment for transaction including meta transactions
+        for (unsigned int j = 0; j < security; j++) {
+
+            unsigned char signature_bytes[27 * 48];
+            signing_next_fragment(&signing_ctx, signature_bytes);
+            bytes_to_chars(signature_bytes, tx_object_buffer.signatureMessageFragment,
+                           27 * 48);
+
+
+            if(tx_receiver_func(&tx_object_buffer)){
+                idx++;
+                continue;
+            }else{
+                break;
+            }
+        }
+    }
+
+    char bundle_hash[81];
+    bytes_to_chars(bundle_ctx.hash, bundle_hash, 48);
+    // send the bundle hash to the receiver func
+    bundle_receiver_func(bundle_hash);
 }
 
 void prepare_transfers(const char *seed, uint8_t security, TX_OUTPUT *outputs,
