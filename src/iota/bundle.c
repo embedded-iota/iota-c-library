@@ -42,7 +42,7 @@ void bundle_set_address_bytes(BUNDLE_CTX *ctx, const unsigned char *addresses)
     }
 
     unsigned char *bytes_ptr = TX_BYTES(ctx);
-    memcpy(bytes_ptr, addresses, 48);
+    os_memcpy(bytes_ptr, addresses, 48);
 }
 
 static void create_bundle_bytes(int64_t value, const char *tag,
@@ -265,7 +265,7 @@ static bool bundle_validate_hash(BUNDLE_CTX *ctx)
 
     if (memchr(hash_trytes, MAX_TRYTE_VALUE, 81) != NULL) {
         // if the hash is invalid, reset it to zero
-        memcpy(ctx->hash, 0, 48);
+        os_memset(ctx->hash, 0, 48);
         return false;
     }
 
