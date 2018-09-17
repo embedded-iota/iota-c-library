@@ -95,16 +95,6 @@ static void increment_obsolete_tag(unsigned int tag_increment, TX_OUTPUT *tx)
     memcpy(tx->tag, extended_tag, 27);
 }
 
-static void bundle_set_address(BUNDLE_CTX *ctx, const unsigned char *seed_bytes,
-                               uint32_t key_index, unsigned int security)
-{
-    char address[81];
-    get_address(seed_bytes, key_index, security, address);
-
-    bundle_set_internal_address(ctx, address, key_index);
-}
-
-
 void prepare_transfers(const char *seed, uint8_t security, TX_OUTPUT *outputs,
                        int num_outputs, TX_INPUT *inputs, int num_inputs,
                        char transaction_chars[][2673])
@@ -122,7 +112,7 @@ void prepare_transfers(const char *seed, uint8_t security, TX_OUTPUT *outputs,
     bundle_initialize(&bundle_ctx, last_tx_index);
 
     // add the outputs first
-    for (unsigned int i = 0; i < num_outputs; i++) {
+    for (unsigned int i = 0; i < (unsigned int) num_outputs; i++) {
         bundle_set_external_address(&bundle_ctx, outputs[i].address);
 
         // assure that the tag is 27 chars
@@ -133,7 +123,7 @@ void prepare_transfers(const char *seed, uint8_t security, TX_OUTPUT *outputs,
     // temporarily store the input addresses
     char input_addresses[num_inputs][81];
 
-    for (unsigned int i = 0; i < num_inputs; i++) {
+    for (unsigned int i = 0; i < (unsigned int) num_inputs; i++) {
         get_address(seed_bytes, inputs[i].key_index, security,
                     input_addresses[i]);
         bundle_set_internal_address(&bundle_ctx, input_addresses[i],
@@ -159,7 +149,7 @@ void prepare_transfers(const char *seed, uint8_t security, TX_OUTPUT *outputs,
 
     // create transaction chars
     unsigned int idx = 0;
-    for (unsigned int i = 0; i < num_outputs; i++) {
+    for (unsigned int i = 0; i < (unsigned int) num_outputs; i++) {
         get_transaction_chars(outputs[i].address, outputs[i].value,
                               outputs[i].tag, timestamp, idx, last_tx_index,
                               bundle, transaction_chars[last_tx_index - idx]);
@@ -170,7 +160,7 @@ void prepare_transfers(const char *seed, uint8_t security, TX_OUTPUT *outputs,
     tryte_t normalized_bundle_hash[81];
     bundle_get_normalized_hash(&bundle_ctx, normalized_bundle_hash);
 
-    for (unsigned int i = 0; i < num_inputs; i++) {
+    for (unsigned int i = 0; i < (unsigned int) num_inputs; i++) {
         SIGNING_CTX signing_ctx;
         signing_initialize(&signing_ctx, seed_bytes, inputs[i].key_index,
                            security, normalized_bundle_hash);
