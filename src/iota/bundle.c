@@ -14,7 +14,7 @@ void bundle_initialize(BUNDLE_CTX *ctx, uint32_t last_index)
         THROW(INVALID_PARAMETER);
     }
 
-    memset(ctx, 0, sizeof(BUNDLE_CTX));
+    os_memset(ctx, 0, sizeof(BUNDLE_CTX));
     ctx->last_index = last_index;
 }
 
