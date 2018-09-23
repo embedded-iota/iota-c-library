@@ -1,5 +1,9 @@
 # embedded IOTA micro light wallet 
 
+#### Alpha version: 
+API might change over time. Don't use it in production environments!
+
+
 ## A notice to trytes:
 
 Due to confusion of several people, a short explanation about the conversions.
