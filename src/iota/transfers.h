@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-typedef struct TX_OBJECT {
+typedef struct {
     char signatureMessageFragment[2187];
     char address[81];
     int64_t value;
@@ -16,30 +16,41 @@ typedef struct TX_OBJECT {
     char branchTransaction[81];
     char tag[27];
     char nonce[27];
-} TX_OBJECT;
+} iota_wallet_tx_object_t;
 
-typedef struct TX_OUTPUT {
+typedef struct {
         char address[81];
         int64_t value;
         char message[2187];
         char tag[27];
-} TX_OUTPUT;
+} iota_wallet_tx_output_t;
 
-typedef struct TX_INPUT {
+typedef struct {
         int64_t balance;
+        char address[81];
         uint32_t key_index;
-} TX_INPUT;
+} iota_wallet_tx_input_t;
 
-typedef int (*tx_receiver_t)(TX_OBJECT * tx_object);
+typedef struct {
+    char * seed;
+    uint8_t security;
+    iota_wallet_tx_output_t * output_txs;
+    uint32_t output_txs_length;
+    iota_wallet_tx_input_t * input_txs;
+    uint32_t input_txs_length;
+    uint32_t timestamp;
+} iota_wallet_bundle_object_t;
 
-typedef int (*bundle_hash_receiver)(char * hash);
+typedef int (*iota_wallet_tx_receiver_t)(iota_wallet_tx_object_t * tx_object);
+void iota_wallet_set_tx_receiver_func(iota_wallet_tx_receiver_t func);
 
-void prepare_transfers_light(char *seed, uint8_t security, TX_OUTPUT *outputs,
-                             unsigned int num_outputs, TX_INPUT *inputs, unsigned int num_inputs,
-                             tx_receiver_t tx_receiver_func, bundle_hash_receiver bundle_receiver_func);
+typedef int (*iota_wallet_bundle_hash_receiver_ptr_t)(char * hash);
+void iota_wallet_set_bundle_hash_receiver_func(iota_wallet_bundle_hash_receiver_ptr_t func);
 
-void prepare_transfers(const char *seed, uint8_t security, TX_OUTPUT *outputs,
-                       int num_outputs, TX_INPUT *inputs, int num_inputs,
-                       char transaction_chars[][2673]);
+void iota_wallet_get_address(char * seed, uint32_t idx, unsigned int security, char *address);
+
+void iota_wallet_create_tx_bundle(iota_wallet_bundle_object_t bundle_object);
+
+void iota_wallet_construct_raw_transaction_chars(char * buffer, char * bundle_hash, iota_wallet_tx_object_t * tx);
 
 #endif //TRANSFERS_H

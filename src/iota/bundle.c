@@ -4,6 +4,7 @@
 #include "addresses.h"
 #include "conversion.h"
 #include "kerl.h"
+#include <stdio.h>
 
 // pointer to the first byte of the current transaction
 #define TX_BYTES(C) ((C)->bytes + (C)->current_index * 96)
@@ -13,8 +14,12 @@ void bundle_initialize(BUNDLE_CTX *ctx, uint32_t last_index)
     if (last_index >= MAX_BUNDLE_INDEX_SZ) {
         THROW(INVALID_PARAMETER);
     }
-
-    os_memset(ctx, 0, sizeof(BUNDLE_CTX));
+    ctx->current_index = 0;
+    ctx->last_index = 0;
+    for(int i = 0; i < MAX_BUNDLE_INDEX_SZ; i++){
+        ctx->values[i] = 0;
+        ctx->indices[i] = 0;
+    }
     ctx->last_index = last_index;
 }
 
@@ -45,11 +50,19 @@ void bundle_set_address_bytes(BUNDLE_CTX *ctx, const unsigned char *addresses)
     os_memcpy(bytes_ptr, addresses, 48);
 }
 
+trit_t bundle_essence_trits[243];
+
+void clear_build_essence_trits(void){
+    for(int i = 0; i < 243; i++){
+        bundle_essence_trits[i] = 0;
+    }
+}
+
 static void create_bundle_bytes(int64_t value, const char *tag,
                                 uint32_t timestamp, uint32_t current_index,
                                 uint32_t last_index, unsigned char *bytes)
 {
-    trit_t bundle_essence_trits[243] = {0};
+    clear_build_essence_trits();
 
     int64_to_trits(value, bundle_essence_trits, 81);
     chars_to_trits(tag, bundle_essence_trits + 81, 27);

@@ -29,6 +29,16 @@ static const uint32_t TRIT_82[12] = {0xd56d7cc3, 0xb6bf0c69, 0xa149e834,
                                      0x4d98d5ce, 0x1};
 #endif // USE_UNSAFE_INCREMENT_TAG
 
+trit_t trits_buffer[243];
+
+int clear_trits_buffer(void){
+    for(unsigned int i = 0; i < 243; i++){
+        trits_buffer[i] = -1;
+    }
+
+    return 1;
+}
+
 static const trit_t trits_mapping[27][3] = {
     {-1, -1, -1}, {0, -1, -1}, {1, -1, -1}, {-1, 0, -1}, {0, 0, -1}, {1, 0, -1},
     {-1, 1, -1},  {0, 1, -1},  {1, 1, -1},  {-1, -1, 0}, {0, -1, 0}, {1, -1, 0},
@@ -373,21 +383,23 @@ void trits_to_bytes(const trit_t *trits, unsigned char *bytes)
 
 void trytes_to_bytes(const tryte_t *trytes, unsigned char *bytes)
 {
-    trit_t trits[243];
-    trytes_to_trits(trytes, trits, 81);
-    trits_to_bytes(trits, bytes);
+    clear_trits_buffer();
+    trytes_to_trits(trytes, trits_buffer, 81);
+    trits_to_bytes(trits_buffer, bytes);
 }
+
 
 void chars_to_bytes(const char *chars, unsigned char *bytes,
                     unsigned int chars_len)
 {
+    clear_trits_buffer();
     for (unsigned int i = 0; i < chars_len / 81; i++) {
-        trit_t trits[243];
-        chars_to_trits(chars + i * 81, trits, 81);
-        // bigint can only handle 242 trits
-        trits[242] = 0;
 
-        trits_to_bytes(trits, bytes + i * 48);
+        chars_to_trits(chars + i * 81, trits_buffer, 81);
+        // bigint can only handle 242 trits
+        trits_buffer[242] = 0;
+
+        trits_to_bytes(trits_buffer, bytes + i * 48);
     }
 }
 
@@ -400,9 +412,9 @@ static inline void bytes_to_trits(const unsigned char *bytes, trit_t *trits)
 
 void bytes_to_trytes(const unsigned char *bytes, tryte_t *trytes)
 {
-    trit_t trits[243];
-    bytes_to_trits(bytes, trits);
-    trits_to_trytes(trits, trytes, 243);
+    clear_trits_buffer();
+    bytes_to_trits(bytes, trits_buffer);
+    trits_to_trytes(trits_buffer, trytes, 243);
 }
 
 void bytes_to_chars(const unsigned char *bytes, char *chars,

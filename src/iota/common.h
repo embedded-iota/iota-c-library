@@ -54,7 +54,6 @@ typedef SHA3_CTX cx_hash_t;
 
 static inline void cx_keccak_init(SHA3_CTX* hash, int size) {
         UNUSED(size);
-
         keccak_384_Init(hash);
 }
 

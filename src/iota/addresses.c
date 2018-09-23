@@ -3,6 +3,7 @@
 #include "conversion.h"
 #include "kerl.h"
 #include <string.h>
+#include <stdio.h>
 
 #define CHECKSUM_CHARS 9
 
@@ -18,6 +19,8 @@ static void digest_single_chunk(unsigned char *key_fragment,
     // absorb buffer directly to avoid storing the digest fragment
     kerl_absorb_chunk(digest_sha3, key_fragment);
 }
+
+
 
 // initialize the sha3 instance for generating private key
 static void init_shas(const unsigned char *seed_bytes, uint32_t idx,
@@ -59,7 +62,7 @@ void get_public_addr(const unsigned char *seed_bytes, uint32_t idx,
     // only store a single fragment of the private key at a time
     // use last chunk of buffer, as this is only used after the key is generated
     unsigned char *key_f = digest + NUM_HASH_BYTES * (security - 1);
-
+    
     for (uint8_t i = 0; i < security; i++) {
         for (uint8_t j = 0; j < 27; j++) {
             // use address output array as a temp Kerl state storage
