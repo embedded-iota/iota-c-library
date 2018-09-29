@@ -2,6 +2,7 @@
 #define TRANSFERS_H
 
 #include <stdint.h>
+#include "iota_types.h"
 
 typedef struct {
     char signatureMessageFragment[2187];
@@ -26,30 +27,30 @@ typedef struct {
 } iota_wallet_tx_output_t;
 
 typedef struct {
-        int64_t balance;
+        int64_t value;
         char address[81];
         uint32_t key_index;
 } iota_wallet_tx_input_t;
 
 typedef struct {
-    char * seed;
+    char seed[81];
     uint8_t security;
     iota_wallet_tx_output_t * output_txs;
     uint32_t output_txs_length;
     iota_wallet_tx_input_t * input_txs;
     uint32_t input_txs_length;
     uint32_t timestamp;
-} iota_wallet_bundle_object_t;
+} iota_wallet_bundle_description_t;
 
-typedef int (*iota_wallet_tx_receiver_t)(iota_wallet_tx_object_t * tx_object);
-void iota_wallet_set_tx_receiver_func(iota_wallet_tx_receiver_t func);
+typedef int (*iota_wallet_tx_receiver_ptr_t)(iota_wallet_tx_object_t * tx_object);
 
 typedef int (*iota_wallet_bundle_hash_receiver_ptr_t)(char * hash);
-void iota_wallet_set_bundle_hash_receiver_func(iota_wallet_bundle_hash_receiver_ptr_t func);
 
 void iota_wallet_get_address(char * seed, uint32_t idx, unsigned int security, char *address);
 
-void iota_wallet_create_tx_bundle(iota_wallet_bundle_object_t bundle_object);
+void iota_wallet_create_tx_bundle(iota_wallet_bundle_hash_receiver_ptr_t bundle_hash_receiver_ptr,
+                                  iota_wallet_tx_receiver_ptr_t tx_receiver_ptr,
+                                  iota_wallet_bundle_description_t * bundle_desciption);
 
 void iota_wallet_construct_raw_transaction_chars(char * buffer, char * bundle_hash, iota_wallet_tx_object_t * tx);
 
