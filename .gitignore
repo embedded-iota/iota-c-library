@@ -62,6 +62,7 @@ CMakeFiles/
 cmake-build-debug/
 cmake_install.cmake
 CMakeCache.txt
+Makefile
 
 #Compiled sources
 c_light_wallet
