@@ -15,6 +15,7 @@ typedef struct {
     char address[81];
     int64_t value;
     char obsoleteTag[27];
+    char tag[27];
     uint32_t timestamp;
     uint32_t currentIndex;
     uint32_t lastIndex;
