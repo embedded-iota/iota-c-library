@@ -13,7 +13,7 @@
 #include "../aux.h"
 
 //POSIX
-#include "pthread.h"
+#include <pthread.h>
 
 #define ZERO_TAG "999999999999999999999999999"
 

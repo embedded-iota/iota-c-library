@@ -10,7 +10,7 @@
 #include "iota_types.h"
 
 //POSIX
-#include "pthread.h"
+#include <pthread.h>
 
 pthread_mutex_t iota_wallet_trits_mutex;
 pthread_mutexattr_t iota_wallet_trits_mutex_attr;
