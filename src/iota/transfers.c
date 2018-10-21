@@ -64,7 +64,7 @@ static void increment_obsolete_tag(unsigned int tag_increment, iota_wallet_tx_ou
     memcpy(tx->tag, extended_tag, 27);
 }
 
-void clear_transaction_char_buffer(char *buffer) {
+static void clear_transaction_char_buffer(char *buffer) {
     memset(buffer, 0, 2672);
 }
 
@@ -91,7 +91,7 @@ void iota_wallet_construct_raw_transaction_chars(char * buffer, char *bundle_has
  *
  * @param tx_object
  */
-void clear_tx_object_buffer(iota_wallet_tx_object_t *tx_object) {
+static void clear_tx_object_buffer(iota_wallet_tx_object_t *tx_object) {
     memset(tx_object->address, '9', 81);
     memset(tx_object->obsoleteTag, '9', 27);
     memset(tx_object->signatureMessageFragment, '9', 2187);
@@ -107,7 +107,7 @@ void clear_tx_object_buffer(iota_wallet_tx_object_t *tx_object) {
  * @param timestamp
  * @param input
  */
-void add_input_tx_to_bundle(
+static void add_input_tx_to_bundle(
         BUNDLE_CTX *ctx, uint8_t security, uint32_t timestamp, iota_wallet_tx_input_t *input) {
 
     bundle_set_internal_address(ctx, input->address, input->key_index);
@@ -126,7 +126,7 @@ void add_input_tx_to_bundle(
  * @param timestamp
  * @param output
  */
-void add_output_tx_to_bundle(BUNDLE_CTX *ctx, uint32_t timestamp, iota_wallet_tx_output_t *output) {
+static void add_output_tx_to_bundle(BUNDLE_CTX *ctx, uint32_t timestamp, iota_wallet_tx_output_t *output) {
 
     bundle_set_external_address(ctx, output->address);
     // assure that the tag is 27 chars
@@ -134,7 +134,7 @@ void add_output_tx_to_bundle(BUNDLE_CTX *ctx, uint32_t timestamp, iota_wallet_tx
     bundle_add_tx(ctx, output->value, output->tag, timestamp);
 }
 
-void normalize_bundle_hash(
+static void normalize_bundle_hash(
         tryte_t normalized_bundle_hash_ptr[81],
         BUNDLE_CTX *bundle_ctx, uint32_t tag_increment, iota_wallet_tx_output_t *increment_output) {
 
@@ -149,7 +149,7 @@ void normalize_bundle_hash(
  * @param bundle_object_ptr
  * @param bundle_hash_reveicer
  */
-void construct_bundle(
+static void construct_bundle(
         BUNDLE_CTX *bundle_ctx, tryte_t normalized_bundle_hash_ptr[81],
         iota_wallet_bundle_description_t *bundle_object_ptr) {
 
@@ -185,7 +185,7 @@ void construct_bundle(
  * @param last_index the last index of the bundle
  * @param timestamp
  */
-void cpy_output_tx_to_tx_object(
+static void cpy_output_tx_to_tx_object(
         iota_wallet_tx_object_t *tx_object, iota_wallet_tx_output_t *output,
         uint32_t index, uint32_t last_index, uint32_t timestamp) {
 
@@ -205,7 +205,7 @@ void cpy_output_tx_to_tx_object(
  * @param last_index the last index of the bundle
  * @param timestamp
  */
-void cpy_zero_tx_to_tx_object(
+static void cpy_zero_tx_to_tx_object(
         iota_wallet_tx_object_t *tx_object, iota_wallet_tx_zero_t *zero,
         uint32_t index, uint32_t last_index, uint32_t timestamp) {
 
@@ -218,8 +218,8 @@ void cpy_zero_tx_to_tx_object(
     tx_object->lastIndex = last_index;
 }
 
-pthread_mutex_t iota_wallet_tx_mutex = {};
-pthread_mutexattr_t iota_wallet_mutex_attr = {};
+static pthread_mutex_t iota_wallet_tx_mutex = {};
+static pthread_mutexattr_t iota_wallet_tx_mutex_attr = {};
 
 /**
  *
@@ -229,7 +229,7 @@ pthread_mutexattr_t iota_wallet_mutex_attr = {};
  * @param zero_tx_start_index Index where start to add signature fragments (zero tx)
  * @return The next empty tx slot index for the next signature segment. Returns 0 at receiver error.
  */
-uint32_t construct_singature_for_input_tx(
+static uint32_t construct_singature_for_input_tx(
         iota_wallet_tx_receiver_ptr_t tx_receiver_ptr,
         SIGNING_CTX *signing_ctx,
         iota_wallet_tx_object_t *tx_object,
@@ -263,10 +263,12 @@ uint32_t construct_singature_for_input_tx(
     return tx_index + 1;
 }
 
-iota_wallet_tx_object_t tx_object = {};
+static iota_wallet_tx_object_t tx_object = {};
 
 void iota_wallet_init(void){
-    pthread_mutex_init(&iota_wallet_tx_mutex, &iota_wallet_mutex_attr);
+    pthread_mutex_init(&iota_wallet_tx_mutex, &iota_wallet_tx_mutex_attr);
+
+    //bundle
     pthread_mutex_init(&iota_wallet_bundle_essence_mutex, &iota_wallet_bundle_essence_mutex_attr);
 
     //conversion

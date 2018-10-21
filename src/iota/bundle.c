@@ -19,8 +19,8 @@
 pthread_mutex_t iota_wallet_bundle_essence_mutex = {};
 pthread_mutexattr_t iota_wallet_bundle_essence_mutex_attr = {};
 
-trit_t bundle_essence_trits[243];
-void clear_build_essence_trits(void){
+static trit_t bundle_essence_trits[243];
+static void clear_build_essence_trits(void){
     memset(bundle_essence_trits, 0, 243);
 }
 
@@ -53,16 +53,6 @@ void bundle_set_internal_address(BUNDLE_CTX *ctx, const char *address,
 {
     bundle_set_external_address(ctx, address);
     ctx->indices[ctx->current_index] = index;
-}
-
-void bundle_set_address_bytes(BUNDLE_CTX *ctx, const unsigned char *addresses)
-{
-    if (!bundle_has_open_txs(ctx)) {
-        THROW(INVALID_STATE);
-    }
-
-    unsigned char *bytes_ptr = TX_BYTES(ctx);
-    memcpy(bytes_ptr, addresses, 48);
 }
 
 static void create_bundle_bytes(int64_t value, const char *tag,
@@ -292,18 +282,6 @@ static bool bundle_validate_hash(BUNDLE_CTX *ctx)
     }
 
     return true;
-}
-
-bool bundle_validating_finalize(BUNDLE_CTX *ctx, uint32_t change_index,
-                                const unsigned char *seed_bytes,
-                                unsigned int security)
-{
-    if (bundle_has_open_txs(ctx)) {
-        THROW(INVALID_STATE);
-    }
-
-    return validate_bundle(ctx, change_index, seed_bytes, security) &&
-           bundle_validate_hash(ctx);
 }
 
 unsigned int bundle_finalize(BUNDLE_CTX *ctx)
