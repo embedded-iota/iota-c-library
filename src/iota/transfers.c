@@ -17,6 +17,13 @@
 
 #define ZERO_TAG "999999999999999999999999999"
 
+/**
+ *
+ * @param value the source value
+ * @param chars destination ptr
+ * @param num_trytes number of trytes
+ * @return ptr position of the end of tryte chars ptr
+ */
 static char *int64_to_chars(int64_t value, char *chars, unsigned int num_trytes) {
     trit_t trits[num_trytes * 3];
     int64_to_trits(value, trits, num_trytes * 3);
@@ -25,13 +32,6 @@ static char *int64_to_chars(int64_t value, char *chars, unsigned int num_trytes)
     return chars + num_trytes;
 }
 
-/**
- *
- * @param seed Seed chars where the address is generated from.
- * @param idx the address index
- * @param security
- * @param address the pointer which receives the address
- */
 void iota_wallet_get_address(char seed[81], uint32_t idx, unsigned int security, char address[81]) {
     unsigned char trytes_bytes_buffer[48];
     unsigned char seed_bytes[48];
@@ -68,12 +68,6 @@ void clear_transaction_char_buffer(char *buffer) {
     memset(buffer, 0, 2672);
 }
 
-/**
- *
- * @param buffer the raw transaction char buffer. Size = 2674. Last byte = '\0'
- * @param bundle_hash
- * @param tx the transaction to construct the raw transaction data from.
- */
 void iota_wallet_construct_raw_transaction_chars(char * buffer, char *bundle_hash,
                                                  iota_wallet_tx_object_t *tx) {
     clear_transaction_char_buffer(buffer);
@@ -251,9 +245,6 @@ uint32_t construct_singature_for_input_tx(
 
 iota_wallet_tx_object_t tx_object = {};
 
-/**
- * @brief initializes the iota wallet. Init of mutex
- */
 void iota_wallet_init(void){
     pthread_mutex_init(&iota_wallet_tx_mutex, &iota_wallet_mutex_attr);
     pthread_mutex_init(&iota_wallet_bundle_essence_mutex, &iota_wallet_bundle_essence_mutex_attr);
@@ -263,12 +254,6 @@ void iota_wallet_init(void){
 }
 
 
-/**
- *
- * @param bundle_hash_receiver_ptr Pointer function which receives the bundle hash.
- * @param tx_receiver_ptr Pointer function which receives every tx_object within the bundle
- * @param bundle_desciption
- */
 iota_wallet_status_codes_t iota_wallet_create_tx_bundle(
         iota_wallet_bundle_hash_receiver_ptr_t bundle_hash_receiver_ptr,
         iota_wallet_tx_receiver_ptr_t tx_receiver_ptr,

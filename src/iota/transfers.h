@@ -44,17 +44,51 @@ typedef struct {
     uint32_t timestamp;
 } iota_wallet_bundle_description_t;
 
+/**
+ * @brief type for callback tx_object receiver. Called each time input tx or output tx is computed.
+ */
 typedef int (*iota_wallet_tx_receiver_ptr_t)(iota_wallet_tx_object_t * tx_object);
 
+/**
+ * @brief type for callback receiver. Called when bundle_hash is computed.
+ */
 typedef int (*iota_wallet_bundle_hash_receiver_ptr_t)(char * hash);
 
+/**
+ * @brief initializes the iota wallet. Init of mutexes. Need to be called once.
+ */
 void iota_wallet_init(void);
+
+/**
+ *
+ * @param seed Seed chars where the address is generated from.
+ * @param idx the address index
+ * @param security
+ * @param address the pointer which receives the address
+ */
 void iota_wallet_get_address(char * seed, uint32_t idx, unsigned int security, char *address);
 
-iota_wallet_status_codes_t iota_wallet_create_tx_bundle(iota_wallet_bundle_hash_receiver_ptr_t bundle_hash_receiver_ptr,
-                                  iota_wallet_tx_receiver_ptr_t tx_receiver_ptr,
-                                  iota_wallet_bundle_description_t * bundle_desciption);
+/**
+ *
+ * @brief Creates a IOTA transaction bundle by given input & output txs
+ * within the bundle_description
+ * @param bundle_hash_receiver_ptr Pointer function which receives the bundle hash.
+ * @param tx_receiver_ptr Pointer function which receives every tx_object within the bundle
+ * @param bundle_desciption
+ * @return iota_wallet_status_codes_t
+ */
+iota_wallet_status_codes_t iota_wallet_create_tx_bundle(
+        iota_wallet_bundle_hash_receiver_ptr_t bundle_hash_receiver_ptr,
+        iota_wallet_tx_receiver_ptr_t tx_receiver_ptr,
+        iota_wallet_bundle_description_t * bundle_desciption);
 
-void iota_wallet_construct_raw_transaction_chars(char * buffer, char * bundle_hash, iota_wallet_tx_object_t * tx);
+/**
+ *
+ * @param buffer the raw transaction char buffer. Size = 2674. Last byte = '\0'
+ * @param bundle_hash
+ * @param tx the transaction to construct the raw transaction data from.
+ */
+void iota_wallet_construct_raw_transaction_chars(
+        char * buffer, char * bundle_hash, iota_wallet_tx_object_t * tx);
 
 #endif //TRANSFERS_H
