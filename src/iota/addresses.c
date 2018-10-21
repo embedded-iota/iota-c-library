@@ -28,7 +28,7 @@ static void init_shas(const unsigned char *seed_bytes, uint32_t idx,
 {
     // use temp bigint so seed not destroyed
     unsigned char bytes[NUM_HASH_BYTES];
-    os_memcpy(bytes, seed_bytes, sizeof(bytes));
+    memcpy(bytes, seed_bytes, sizeof(bytes));
 
     bytes_add_u32_mem(bytes, idx);
 
@@ -105,6 +105,6 @@ void get_address_with_checksum(const unsigned char *address_bytes,
 
     bytes_to_chars(address_bytes, full_address, NUM_HASH_BYTES);
 
-    os_memcpy(full_address + NUM_HASH_TRYTES,
+    memcpy(full_address + NUM_HASH_TRYTES,
               full_checksum + NUM_HASH_TRYTES - CHECKSUM_CHARS, CHECKSUM_CHARS);
 }
