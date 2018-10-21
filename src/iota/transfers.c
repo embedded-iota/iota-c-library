@@ -189,10 +189,30 @@ void cpy_output_tx_to_tx_object(
         iota_wallet_tx_object_t *tx_object, iota_wallet_tx_output_t *output,
         uint32_t index, uint32_t last_index, uint32_t timestamp) {
 
-    rpad_chars(tx_object->signatureMessageFragment, output->message, 2187);
     memcpy(tx_object->address, output->address, 81);
     tx_object->value = output->value;
     rpad_chars(tx_object->obsoleteTag, output->tag, 27);
+    tx_object->timestamp = timestamp;
+    tx_object->currentIndex = index;
+    tx_object->lastIndex = last_index;
+}
+
+/**
+ *
+ * @param tx_object the receiving object
+ * @param zero the zero tx to copy from
+ * @param index the txs index position within the bundle
+ * @param last_index the last index of the bundle
+ * @param timestamp
+ */
+void cpy_zero_tx_to_tx_object(
+        iota_wallet_tx_object_t *tx_object, iota_wallet_tx_zero_t *zero,
+        uint32_t index, uint32_t last_index, uint32_t timestamp) {
+
+    rpad_chars(tx_object->signatureMessageFragment, zero->message, 2187);
+    memcpy(tx_object->address, zero->address, 81);
+    tx_object->value = 0;
+    rpad_chars(tx_object->obsoleteTag, zero->tag, 27);
     tx_object->timestamp = timestamp;
     tx_object->currentIndex = index;
     tx_object->lastIndex = last_index;
@@ -263,6 +283,8 @@ iota_wallet_status_codes_t iota_wallet_create_tx_bundle(
     uint8_t security = bundle_desciption->security;
     iota_wallet_tx_output_t *outputs = bundle_desciption->output_txs;
     unsigned int num_outputs = bundle_desciption->output_txs_length;
+    iota_wallet_tx_zero_t *zeros = bundle_desciption->zero_txs;
+    unsigned int num_zeros = bundle_desciption->zero_txs_length;
     iota_wallet_tx_input_t *inputs = bundle_desciption->input_txs;
     unsigned int num_inputs = bundle_desciption->input_txs_length;
 
@@ -277,8 +299,8 @@ iota_wallet_status_codes_t iota_wallet_create_tx_bundle(
     }
 
     const uint32_t timestamp = bundle_desciption->timestamp;
-    const unsigned int num_txs = num_outputs + num_inputs * security;
-    const unsigned int num_txs_without_security = num_outputs + num_inputs;
+    const unsigned int num_txs = num_outputs + num_zeros + num_inputs * security;
+    const unsigned int num_txs_without_security = num_outputs + num_zeros + num_inputs;
     const unsigned int last_tx_index = num_txs - 1;
     const unsigned int last_without_security_tx_index = num_txs_without_security - 1;
 
@@ -293,6 +315,24 @@ iota_wallet_status_codes_t iota_wallet_create_tx_bundle(
                 &tx_object, &outputs[i], (uint32_t) idx, last_tx_index, timestamp);
 
         if (tx_receiver_ptr(&tx_object)) {
+            idx++;
+            pthread_mutex_unlock(&iota_wallet_tx_mutex);
+        } else {
+            pthread_mutex_unlock(&iota_wallet_tx_mutex);
+            return BUNDLE_CREATION_TRANSACTION_RECEIVER_ERROR;
+        }
+    }
+
+    // ZERO TX OBJECTS
+    for (unsigned int i = 0; i < num_zeros; i++) {
+        pthread_mutex_lock(&iota_wallet_tx_mutex);
+
+        clear_tx_object_buffer(&tx_object);
+
+        cpy_zero_tx_to_tx_object(
+                &tx_object, &zeros[i], (uint32_t) idx, last_tx_index, timestamp);
+
+        if (tx_receiver_ptr(&tx_object)){
             idx++;
             pthread_mutex_unlock(&iota_wallet_tx_mutex);
         } else {

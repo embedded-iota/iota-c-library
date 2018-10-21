@@ -24,9 +24,14 @@ typedef struct {
 typedef struct {
         char address[81];
         int64_t value;
-        char message[2187];
         char tag[27];
 } iota_wallet_tx_output_t;
+
+typedef struct {
+    char address[81];
+    char message[2187];
+    char tag[27];
+} iota_wallet_tx_zero_t;
 
 typedef struct {
         int64_t value;
@@ -39,6 +44,8 @@ typedef struct {
     uint8_t security;
     iota_wallet_tx_output_t * output_txs;
     uint32_t output_txs_length;
+    iota_wallet_tx_zero_t * zero_txs;
+    uint32_t zero_txs_length;
     iota_wallet_tx_input_t * input_txs;
     uint32_t input_txs_length;
     uint32_t timestamp;
