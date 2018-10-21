@@ -15,6 +15,15 @@
 // pointer to the first byte of the current transaction
 #define TX_BYTES(C) ((C)->bytes + (C)->current_index * 96)
 
+
+pthread_mutex_t iota_wallet_bundle_essence_mutex = {};
+pthread_mutexattr_t iota_wallet_bundle_essence_mutex_attr = {};
+
+trit_t bundle_essence_trits[243];
+void clear_build_essence_trits(void){
+    memset(bundle_essence_trits, 0, 243);
+}
+
 void bundle_initialize(BUNDLE_CTX *ctx, uint32_t last_index)
 {
     if (last_index >= MAX_BUNDLE_INDEX_SZ) {
@@ -54,13 +63,6 @@ void bundle_set_address_bytes(BUNDLE_CTX *ctx, const unsigned char *addresses)
 
     unsigned char *bytes_ptr = TX_BYTES(ctx);
     os_memcpy(bytes_ptr, addresses, 48);
-}
-
-pthread_mutex_t iota_wallet_bundle_essence_mutex = {};
-trit_t bundle_essence_trits[243];
-
-void clear_build_essence_trits(void){
-    memset(bundle_essence_trits, 0, 243);
 }
 
 static void create_bundle_bytes(int64_t value, const char *tag,

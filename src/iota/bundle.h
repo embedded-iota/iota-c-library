@@ -4,6 +4,9 @@
 #include <stdbool.h>
 #include "iota_types.h"
 
+// POSIX
+#include "pthread.h"
+
 
 #define MAX_BUNDLE_INDEX_SZ 8
 
@@ -19,6 +22,9 @@ typedef struct BUNDLE_CTX {
 
         unsigned char hash[48]; // bundle hash, when finalized
 } BUNDLE_CTX;
+
+pthread_mutex_t iota_wallet_bundle_essence_mutex;
+pthread_mutexattr_t iota_wallet_bundle_essence_mutex_attr;
 
 /** @brief Initializes the bundle context for a fixed number of transactions.
  *  @param ctx the bundle context used

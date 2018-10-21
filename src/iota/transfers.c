@@ -256,7 +256,12 @@ iota_wallet_tx_object_t tx_object = {};
  */
 void iota_wallet_init(void){
     pthread_mutex_init(&iota_wallet_tx_mutex, &iota_wallet_mutex_attr);
+    pthread_mutex_init(&iota_wallet_bundle_essence_mutex, &iota_wallet_bundle_essence_mutex_attr);
+
+    //conversion
+    pthread_mutex_init(&iota_wallet_trits_mutex, &iota_wallet_trits_mutex_attr);
 }
+
 
 /**
  *
@@ -269,9 +274,6 @@ iota_wallet_status_codes_t iota_wallet_create_tx_bundle(
         iota_wallet_tx_receiver_ptr_t tx_receiver_ptr,
         iota_wallet_bundle_description_t *bundle_desciption) {
 
-    unsigned char seed_bytes[48];
-    char bundle_hash[81];
-
     char *seed_chars = bundle_desciption->seed;
     uint8_t security = bundle_desciption->security;
     iota_wallet_tx_output_t *outputs = bundle_desciption->output_txs;
@@ -279,12 +281,10 @@ iota_wallet_status_codes_t iota_wallet_create_tx_bundle(
     iota_wallet_tx_input_t *inputs = bundle_desciption->input_txs;
     unsigned int num_inputs = bundle_desciption->input_txs_length;
 
-    chars_to_bytes(seed_chars, seed_bytes, 81);
-
+    char bundle_hash[81];
     tryte_t normalized_bundle_hash_ptr[81];
     BUNDLE_CTX bundle_ctx;
     construct_bundle(&bundle_ctx, normalized_bundle_hash_ptr, bundle_desciption);
-
     bytes_to_chars(bundle_get_hash(&bundle_ctx), bundle_hash, 48);
 
     if(!bundle_hash_receiver_ptr(bundle_hash)){
@@ -318,6 +318,8 @@ iota_wallet_status_codes_t iota_wallet_create_tx_bundle(
 
     // INPUT TX_OBJECTS
     uint32_t next_signature_segment_index = last_without_security_tx_index;
+    unsigned char seed_bytes[48];
+    chars_to_bytes(seed_chars, seed_bytes, 81);
     for (unsigned int i = 0; i < num_inputs; i++) {
         pthread_mutex_lock(&iota_wallet_tx_mutex);
         clear_tx_object_buffer(&tx_object);
