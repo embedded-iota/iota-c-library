@@ -3,6 +3,16 @@
 #### Alpha version: 
 API might change over time. Don't use it in production environments!
 
+## Design:
+
+This library is designed to make it possible to use IOTA on really small devices.
+The library fulfils following attributes:
+
+- POSIX compatible (pthreads)
+- Thread-safe
+- Low footprint
+- Usable on devices without MMU
+
 
 ## A notice to trytes:
 
