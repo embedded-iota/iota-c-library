@@ -64,6 +64,10 @@ cmake_install.cmake
 CMakeCache.txt
 Makefile
 
+#Testing
+Testing/
+tests/CTestTestfile.cmake
+
 #Compiled sources
 c_light_wallet
 c_light_wallet.cbp
