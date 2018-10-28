@@ -120,4 +120,8 @@ static inline bool bundle_has_open_txs(const BUNDLE_CTX *ctx)
         return ctx->current_index <= ctx->last_index;
 }
 
+bool validate_bundle(const BUNDLE_CTX *ctx, unsigned int change_tx_index,
+                     const unsigned char *seed_bytes,
+                     unsigned int security);
+
 #endif // BUNDLE_H

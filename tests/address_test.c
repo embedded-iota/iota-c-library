@@ -4,6 +4,7 @@
 #include "hash_file.h"
 #include "iota/addresses.h"
 #include "iota/conversion.h"
+#include <cmocka.h>
 
 static void seed_address(const char *seed_chars, uint32_t idx, uint8_t security,
                          char *address_chars)

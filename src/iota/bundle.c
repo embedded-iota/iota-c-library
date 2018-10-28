@@ -237,7 +237,7 @@ static bool validate_address_reuse(const BUNDLE_CTX *ctx)
     return true;
 }
 
-static bool validate_bundle(const BUNDLE_CTX *ctx, unsigned int change_tx_index,
+bool validate_bundle(const BUNDLE_CTX *ctx, unsigned int change_tx_index,
                             const unsigned char *seed_bytes,
                             unsigned int security)
 {

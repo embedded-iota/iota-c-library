@@ -6,8 +6,6 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED TRUE)
 
-
-
 set(SOURCE_FILES
         src/iota/addresses.c
         src/iota/addresses.h
@@ -32,3 +30,7 @@ set(SOURCE_FILES
 		)
 
 add_library(iota_wallet STATIC ${SOURCE_FILES})
+
+enable_testing()
+LINK_DIRECTORIES(cmocka/build/src/)
+add_subdirectory(tests)
