@@ -10,7 +10,7 @@
 #include <stdio.h>
 
 // POSIX
-#include <pthread.h>
+#include "pthread.h"
 
 // pointer to the first byte of the current transaction
 #define TX_BYTES(C) ((C)->bytes + (C)->current_index * 96)

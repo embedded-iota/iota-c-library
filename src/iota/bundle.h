@@ -5,7 +5,7 @@
 #include "iota_types.h"
 
 // POSIX
-#include <pthread.h>
+#include "pthread.h"
 
 
 #define MAX_BUNDLE_INDEX_SZ 8

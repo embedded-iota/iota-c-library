@@ -3,7 +3,7 @@
 #include "common.h"
 
 //POSIX
-#include <pthread.h>
+#include "pthread.h"
 
 // #define USE_UNSAFE_INCREMENT_TAG
 
