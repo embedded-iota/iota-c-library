@@ -1,5 +1,4 @@
 #include "test_common.h"
-#include <stdlib.h>
 // include the c-file to be able to test static functions
 #include "iota/conversion.c"
 
