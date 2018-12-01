@@ -11,6 +11,7 @@
 #include "bundle.h"
 #include "signing.h"
 #include "../aux.h"
+#include "common.h"
 
 //POSIX
 #include "pthread.h"
