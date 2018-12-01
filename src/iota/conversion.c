@@ -35,6 +35,10 @@ static const uint32_t TRIT_82[12] = {0xd56d7cc3, 0xb6bf0c69, 0xa149e834,
 pthread_mutex_t iota_wallet_trits_mutex = {};
 pthread_mutexattr_t iota_wallet_trits_mutex_attr = {};
 
+void conversion_mutex_init(void){
+    pthread_mutex_init(&iota_wallet_trits_mutex, &iota_wallet_trits_mutex_attr);
+}
+
 trit_t trits_buffer[243];
 void clear_trits_buffer(void){
     memset(trits_buffer, -1, 243);

@@ -18,6 +18,10 @@
 
 pthread_mutex_t iota_wallet_bundle_essence_mutex = {};
 pthread_mutexattr_t iota_wallet_bundle_essence_mutex_attr = {};
+void bundle_mutex_init(void){
+    pthread_mutex_init(&iota_wallet_bundle_essence_mutex, &iota_wallet_bundle_essence_mutex_attr);
+}
+
 
 static trit_t bundle_essence_trits[243];
 static void clear_build_essence_trits(void){

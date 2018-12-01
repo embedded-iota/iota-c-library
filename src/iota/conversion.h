@@ -9,11 +9,7 @@
 #include <stdint.h>
 #include "iota_types.h"
 
-//POSIX
-#include "pthread.h"
-
-pthread_mutex_t iota_wallet_trits_mutex;
-pthread_mutexattr_t iota_wallet_trits_mutex_attr;
+void conversion_mutex_init(void);
 
 /** @brief Converts a balanced ternary number in base-27 encoding into its
  *         trit representation.

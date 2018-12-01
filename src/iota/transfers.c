@@ -269,11 +269,8 @@ static iota_wallet_tx_object_t tx_object = {};
 void iota_wallet_init(void){
     pthread_mutex_init(&iota_wallet_tx_mutex, &iota_wallet_tx_mutex_attr);
 
-    //bundle
-    pthread_mutex_init(&iota_wallet_bundle_essence_mutex, &iota_wallet_bundle_essence_mutex_attr);
-
-    //conversion
-    pthread_mutex_init(&iota_wallet_trits_mutex, &iota_wallet_trits_mutex_attr);
+    bundle_mutex_init();
+    conversion_mutex_init();
 }
 
 
