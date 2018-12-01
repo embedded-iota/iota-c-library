@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "../keccak/sha3.h"
 
@@ -80,3 +81,11 @@ static inline void cx_hash(SHA3_CTX* hash, int mode, const unsigned char *in,
         })
 
 #endif // COMMON_H
+
+bool in_range(int x, int min, int max){
+    if(x >= min && x <= max){
+        return true;
+    }else{
+        return false;
+    }
+}

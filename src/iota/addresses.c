@@ -47,7 +47,7 @@ static void init_shas(const unsigned char *seed_bytes, uint32_t idx,
 void get_public_addr(const unsigned char *seed_bytes, uint32_t idx,
                      unsigned int security, unsigned char *address_bytes)
 {
-    if (!IN_RANGE(security, MIN_SECURITY_LEVEL, MAX_SECURITY_LEVEL)) {
+    if (!in_range(security, MIN_SECURITY_LEVEL, MAX_SECURITY_LEVEL)) {
         THROW(INVALID_PARAMETER);
     }
 
