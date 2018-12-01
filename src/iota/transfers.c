@@ -42,7 +42,7 @@ void iota_wallet_get_address(char seed[81], uint32_t idx, unsigned int security,
 }
 
 static char *char_copy(char *destination, const char *source, unsigned int len) {
-    assert(strnlen(source, len) == len);
+    assert(common_strnlen(source, len) == len);
     memmove(destination, source, len);
 
     return destination + len;

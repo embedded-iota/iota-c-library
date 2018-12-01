@@ -11,6 +11,7 @@ set(SOURCE_FILES
         src/iota/signing.c
         src/iota/signing.h
         src/iota/common.h
+		src/iota/common.c
         src/iota/conversion.c
         src/iota/conversion.h
         src/iota/iota_types.h

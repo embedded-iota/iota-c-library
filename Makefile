@@ -4,7 +4,7 @@ KECCAK_SRC_DIR = $(SRC_DIR)/keccak
 
 BUILD_DIR = build
 
-IOTA_OBJ = addresses bundle conversion kerl signing transfers
+IOTA_OBJ = addresses bundle conversion kerl signing transfers common
 KECCAK_OBJ = sha3
 SRC_OBJ = aux
 OBJ = $(IOTA_OBJ) $(KECCAK_OBJ) $(SRC_OBJ)
