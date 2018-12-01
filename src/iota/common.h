@@ -80,8 +80,6 @@ static inline void cx_hash(SHA3_CTX* hash, int mode, const unsigned char *in,
                 (_x >= (min) && _x <= (max));                                  \
         })
 
-#endif // COMMON_H
-
 bool in_range(int x, int min, int max){
     if(x >= min && x <= max){
         return true;
@@ -89,3 +87,5 @@ bool in_range(int x, int min, int max){
         return false;
     }
 }
+
+#endif // COMMON_H
