@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#undef pthread_attr_t
+#undef sched_param
+
 #include "../keccak/sha3.h"
 
 /* ----------------------------------------------------------------------- */

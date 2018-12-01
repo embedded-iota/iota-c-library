@@ -1,9 +1,12 @@
+#include <string.h>
+#include <stdio.h>
+#undef pthread_attr_t
+#undef sched_param
+
 #include "addresses.h"
 #include "common.h"
 #include "conversion.h"
 #include "kerl.h"
-#include <string.h>
-#include <stdio.h>
 
 #define CHECKSUM_CHARS 9
 
