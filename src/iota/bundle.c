@@ -288,6 +288,18 @@ static bool bundle_validate_hash(BUNDLE_CTX *ctx)
     return true;
 }
 
+bool bundle_validating_finalize(BUNDLE_CTX *ctx, uint32_t change_index,
+                                const unsigned char *seed_bytes,
+                                unsigned int security)
+{
+    if (bundle_has_open_txs(ctx)) {
+        THROW(INVALID_STATE);
+    }
+
+    return validate_bundle(ctx, change_index, seed_bytes, security) &&
+           bundle_validate_hash(ctx);
+}
+
 unsigned int bundle_finalize(BUNDLE_CTX *ctx)
 {
     unsigned int tag_increment = 0;
