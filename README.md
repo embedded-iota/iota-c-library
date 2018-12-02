@@ -1,17 +1,18 @@
-# embedded IOTA micro light wallet 
+# embedded IOTA C library
 
 #### Alpha version: 
 API might change over time. Don't use it in production environments!
 
 ## Design:
 
-This library is designed to make it possible to use IOTA on really small devices.
-The library fulfils following attributes:
+This library is designed to make it possible to use IOTA on really small embedded devices.
+The library has the following attributes:
 
-- POSIX compatible (pthreads)
+- POSIX compatible Threads (pthread)
 - Thread-safe
 - Low footprint
 - Usable on devices without MMU
+- C99 compliant 
 
 
 ## A notice to trytes:
