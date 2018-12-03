@@ -9,6 +9,8 @@
 #include <stdint.h>
 #include "iota_types.h"
 
+void conversion_mutex_init(void);
+
 /** @brief Converts a balanced ternary number in base-27 encoding into its
  *         trit representation.
  *  @param chars base-27 encoded ternary number

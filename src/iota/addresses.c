@@ -1,8 +1,10 @@
+#include <string.h>
+#include <stdio.h>
+
 #include "addresses.h"
 #include "common.h"
 #include "conversion.h"
 #include "kerl.h"
-#include <string.h>
 
 #define CHECKSUM_CHARS 9
 
@@ -19,13 +21,15 @@ static void digest_single_chunk(unsigned char *key_fragment,
     kerl_absorb_chunk(digest_sha3, key_fragment);
 }
 
+
+
 // initialize the sha3 instance for generating private key
 static void init_shas(const unsigned char *seed_bytes, uint32_t idx,
                       cx_sha3_t *key_sha, cx_sha3_t *digest_sha)
 {
     // use temp bigint so seed not destroyed
     unsigned char bytes[NUM_HASH_BYTES];
-    os_memcpy(bytes, seed_bytes, sizeof(bytes));
+    memcpy(bytes, seed_bytes, sizeof(bytes));
 
     bytes_add_u32_mem(bytes, idx);
 
@@ -43,7 +47,7 @@ static void init_shas(const unsigned char *seed_bytes, uint32_t idx,
 void get_public_addr(const unsigned char *seed_bytes, uint32_t idx,
                      unsigned int security, unsigned char *address_bytes)
 {
-    if (!IN_RANGE(security, MIN_SECURITY_LEVEL, MAX_SECURITY_LEVEL)) {
+    if (!in_range(security, MIN_SECURITY_LEVEL, MAX_SECURITY_LEVEL)) {
         THROW(INVALID_PARAMETER);
     }
 
@@ -59,7 +63,7 @@ void get_public_addr(const unsigned char *seed_bytes, uint32_t idx,
     // only store a single fragment of the private key at a time
     // use last chunk of buffer, as this is only used after the key is generated
     unsigned char *key_f = digest + NUM_HASH_BYTES * (security - 1);
-
+    
     for (uint8_t i = 0; i < security; i++) {
         for (uint8_t j = 0; j < 27; j++) {
             // use address output array as a temp Kerl state storage
@@ -102,6 +106,6 @@ void get_address_with_checksum(const unsigned char *address_bytes,
 
     bytes_to_chars(address_bytes, full_address, NUM_HASH_BYTES);
 
-    os_memcpy(full_address + NUM_HASH_TRYTES,
+    memcpy(full_address + NUM_HASH_TRYTES,
               full_checksum + NUM_HASH_TRYTES - CHECKSUM_CHARS, CHECKSUM_CHARS);
 }

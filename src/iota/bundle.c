@@ -1,20 +1,44 @@
+// iota lib
 #include "bundle.h"
-#include <string.h>
 #include "common.h"
 #include "addresses.h"
 #include "conversion.h"
 #include "kerl.h"
 
+// std lib
+#include <string.h>
+#include <stdio.h>
+
+// POSIX
+#include "pthread.h"
+
 // pointer to the first byte of the current transaction
 #define TX_BYTES(C) ((C)->bytes + (C)->current_index * 96)
+
+
+pthread_mutex_t iota_wallet_bundle_essence_mutex = {};
+pthread_mutexattr_t iota_wallet_bundle_essence_mutex_attr = {};
+void bundle_mutex_init(void){
+    pthread_mutex_init(&iota_wallet_bundle_essence_mutex, &iota_wallet_bundle_essence_mutex_attr);
+}
+
+
+static trit_t bundle_essence_trits[243];
+static void clear_build_essence_trits(void){
+    memset(bundle_essence_trits, 0, 243);
+}
 
 void bundle_initialize(BUNDLE_CTX *ctx, uint32_t last_index)
 {
     if (last_index >= MAX_BUNDLE_INDEX_SZ) {
         THROW(INVALID_PARAMETER);
     }
-
-    os_memset(ctx, 0, sizeof(BUNDLE_CTX));
+    ctx->current_index = 0;
+    ctx->last_index = 0;
+    for(int i = 0; i < MAX_BUNDLE_INDEX_SZ; i++){
+        ctx->values[i] = 0;
+        ctx->indices[i] = 0;
+    }
     ctx->last_index = last_index;
 }
 
@@ -35,21 +59,12 @@ void bundle_set_internal_address(BUNDLE_CTX *ctx, const char *address,
     ctx->indices[ctx->current_index] = index;
 }
 
-void bundle_set_address_bytes(BUNDLE_CTX *ctx, const unsigned char *addresses)
-{
-    if (!bundle_has_open_txs(ctx)) {
-        THROW(INVALID_STATE);
-    }
-
-    unsigned char *bytes_ptr = TX_BYTES(ctx);
-    os_memcpy(bytes_ptr, addresses, 48);
-}
-
 static void create_bundle_bytes(int64_t value, const char *tag,
                                 uint32_t timestamp, uint32_t current_index,
                                 uint32_t last_index, unsigned char *bytes)
 {
-    trit_t bundle_essence_trits[243] = {0};
+    pthread_mutex_lock(&iota_wallet_bundle_essence_mutex);
+    clear_build_essence_trits();
 
     int64_to_trits(value, bundle_essence_trits, 81);
     chars_to_trits(tag, bundle_essence_trits + 81, 27);
@@ -59,6 +74,7 @@ static void create_bundle_bytes(int64_t value, const char *tag,
 
     // now we have exactly one chunk of 243 trits
     trits_to_bytes(bundle_essence_trits, bytes);
+    pthread_mutex_unlock(&iota_wallet_bundle_essence_mutex);
 }
 
 uint32_t bundle_add_tx(BUNDLE_CTX *ctx, int64_t value, const char *tag,
@@ -265,7 +281,7 @@ static bool bundle_validate_hash(BUNDLE_CTX *ctx)
 
     if (memchr(hash_trytes, MAX_TRYTE_VALUE, 81) != NULL) {
         // if the hash is invalid, reset it to zero
-        os_memset(ctx->hash, 0, 48);
+        memset(ctx->hash, 0, 48);
         return false;
     }
 

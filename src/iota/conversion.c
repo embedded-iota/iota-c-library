@@ -2,6 +2,9 @@
 #include <stdint.h>
 #include "common.h"
 
+//POSIX
+#include "pthread.h"
+
 // #define USE_UNSAFE_INCREMENT_TAG
 
 #define INT_LENGTH 12
@@ -28,6 +31,18 @@ static const uint32_t TRIT_243[12] = {
 static const uint32_t TRIT_82[12] = {0xd56d7cc3, 0xb6bf0c69, 0xa149e834,
                                      0x4d98d5ce, 0x1};
 #endif // USE_UNSAFE_INCREMENT_TAG
+
+pthread_mutex_t iota_wallet_trits_mutex = {};
+pthread_mutexattr_t iota_wallet_trits_mutex_attr = {};
+
+void conversion_mutex_init(void){
+    pthread_mutex_init(&iota_wallet_trits_mutex, &iota_wallet_trits_mutex_attr);
+}
+
+trit_t trits_buffer[243];
+void clear_trits_buffer(void){
+    memset(trits_buffer, -1, 243);
+}
 
 static const trit_t trits_mapping[27][3] = {
     {-1, -1, -1}, {0, -1, -1}, {1, -1, -1}, {-1, 0, -1}, {0, 0, -1}, {1, 0, -1},
@@ -248,7 +263,7 @@ static bool bigint_set_last_trit_zero(uint32_t *bigint)
 static void trits_to_bigint(const trit_t *trits, uint32_t *bigint)
 {
     unsigned int ms_index = 0; // initialy there is no most significant word >0
-    os_memset(bigint, 0, 12 * sizeof(bigint[0]));
+    memset(bigint, 0, 12 * sizeof(bigint[0]));
 
     // ignore the 243th trit, as it cannot be fully represented in 48 bytes
     for (unsigned int i = 242; i-- > 0;) {
@@ -313,7 +328,7 @@ bool int64_to_trits(int64_t value, trit_t *trits, unsigned int num_trits)
         value = -value;
     }
 
-    os_memset(trits, 0, num_trits);
+    memset(trits, 0, num_trits);
 
     for (unsigned int i = 0; i < num_trits; i++) {
         if (value == 0) {
@@ -373,22 +388,29 @@ void trits_to_bytes(const trit_t *trits, unsigned char *bytes)
 
 void trytes_to_bytes(const tryte_t *trytes, unsigned char *bytes)
 {
-    trit_t trits[243];
-    trytes_to_trits(trytes, trits, 81);
-    trits_to_bytes(trits, bytes);
+    //trit_t trits_buffer[243];
+    pthread_mutex_lock(&iota_wallet_trits_mutex);
+    clear_trits_buffer();
+    trytes_to_trits(trytes, trits_buffer, 81);
+    trits_to_bytes(trits_buffer, bytes);
+    pthread_mutex_unlock(&iota_wallet_trits_mutex);
 }
+
 
 void chars_to_bytes(const char *chars, unsigned char *bytes,
                     unsigned int chars_len)
 {
+    pthread_mutex_lock(&iota_wallet_trits_mutex);
+    clear_trits_buffer();
     for (unsigned int i = 0; i < chars_len / 81; i++) {
-        trit_t trits[243];
-        chars_to_trits(chars + i * 81, trits, 81);
-        // bigint can only handle 242 trits
-        trits[242] = 0;
 
-        trits_to_bytes(trits, bytes + i * 48);
+        chars_to_trits(chars + i * 81, trits_buffer, 81);
+        // bigint can only handle 242 trits
+        trits_buffer[242] = 0;
+
+        trits_to_bytes(trits_buffer, bytes + i * 48);
     }
+    pthread_mutex_unlock(&iota_wallet_trits_mutex);
 }
 
 static inline void bytes_to_trits(const unsigned char *bytes, trit_t *trits)
@@ -400,9 +422,11 @@ static inline void bytes_to_trits(const unsigned char *bytes, trit_t *trits)
 
 void bytes_to_trytes(const unsigned char *bytes, tryte_t *trytes)
 {
-    trit_t trits[243];
-    bytes_to_trits(bytes, trits);
-    trits_to_trytes(trits, trytes, 243);
+    pthread_mutex_lock(&iota_wallet_trits_mutex);
+    clear_trits_buffer();
+    bytes_to_trits(bytes, trits_buffer);
+    trits_to_trytes(trits_buffer, trytes, 243);
+    pthread_mutex_unlock(&iota_wallet_trits_mutex);
 }
 
 void bytes_to_chars(const unsigned char *bytes, char *chars,

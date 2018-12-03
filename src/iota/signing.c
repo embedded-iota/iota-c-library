@@ -6,7 +6,7 @@
 static void initialize_state(const unsigned char *seed_bytes,
                              uint32_t address_idx, unsigned char *state)
 {
-    os_memcpy(state, seed_bytes, 48);
+    memcpy(state, seed_bytes, 48);
     bytes_add_u32_mem(state, address_idx);
 
     cx_sha3_t sha;
@@ -19,12 +19,10 @@ void signing_initialize(SIGNING_CTX *ctx, const unsigned char *seed_bytes,
                         uint32_t address_idx, uint8_t security,
                         const tryte_t *normalized_hash)
 {
-    os_memset(ctx, 0, sizeof(SIGNING_CTX));
-
     initialize_state(seed_bytes, address_idx, ctx->state);
     ctx->last_fragment = NUM_SIGNATURE_FRAGMENTS(security) - 1;
 
-    os_memcpy(ctx->hash, normalized_hash, 81);
+    memcpy(ctx->hash, normalized_hash, 81);
 }
 
 static void generate_signature_fragment(unsigned char *state,
