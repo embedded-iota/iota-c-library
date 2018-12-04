@@ -21,4 +21,4 @@ $(SRC_OBJ):%:$(SRC_DIR)/%.c
 	$(CC) -c -o $(BUILD_DIR)/$@.o $< $(CFLAGS)
 
 lib: $(OBJ)
-	ar -rs -o $(BUILD_DIR)/libiota_wallet.a $(OBJ:%=$(BUILD_DIR)/%.o)
+	ar -rs -o $(BUILD_DIR)/libiota.a $(OBJ:%=$(BUILD_DIR)/%.o)
