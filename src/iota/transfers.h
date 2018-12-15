@@ -2,6 +2,7 @@
 #define TRANSFERS_H
 
 #include <stdint.h>
+#include <stdbool.h>
 #include "iota_types.h"
 
 typedef enum {
@@ -54,12 +55,12 @@ typedef struct {
 /**
  * @brief type for callback tx_object receiver. Called each time input tx or output tx is computed.
  */
-typedef int (*iota_wallet_tx_receiver_ptr_t)(iota_wallet_tx_object_t * tx_object);
+typedef bool (*iota_wallet_tx_receiver_ptr_t)(iota_wallet_tx_object_t * tx_object);
 
 /**
  * @brief type for callback receiver. Called when bundle_hash is computed.
  */
-typedef int (*iota_wallet_bundle_hash_receiver_ptr_t)(char * hash);
+typedef bool (*iota_wallet_bundle_hash_receiver_ptr_t)(char * hash);
 
 /**
  * @brief initializes the iota wallet. Init of mutexes. Need to be called once.
