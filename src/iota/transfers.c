@@ -103,6 +103,14 @@ static void clear_tx_object_buffer(iota_lib_tx_object_t *tx_object) {
 
 /**
  *
+ * @param tx_object
+ */
+static void clear_input_address_buffer(char address[81]) {
+    memset(address, '9', 81);
+}
+
+/**
+ *
  * @param ctx
  * @param security
  * @param timestamp
@@ -111,12 +119,12 @@ static void clear_tx_object_buffer(iota_lib_tx_object_t *tx_object) {
 static void add_input_tx_to_bundle(
         BUNDLE_CTX *ctx, uint8_t security, uint32_t timestamp, iota_lib_tx_input_t *input) {
 
-    bundle_set_internal_address(ctx, input->address, input->key_index);
+    bundle_set_internal_address(ctx, input->address, input->seed_address_index);
     bundle_add_tx(ctx, -input->value, ZERO_TAG, timestamp);
 
     // add signature transaction
     for (unsigned int j = 1; j < security; j++) {
-        bundle_set_internal_address(ctx, input->address, input->key_index);
+        bundle_set_internal_address(ctx, input->address, input->seed_address_index);
         bundle_add_tx(ctx, 0, ZERO_TAG, timestamp);
     }
 }
@@ -222,6 +230,10 @@ static void cpy_zero_tx_to_tx_object(
 static pthread_mutex_t iota_lib_tx_mutex = {};
 static pthread_mutexattr_t iota_lib_tx_mutex_attr = {};
 
+static pthread_mutex_t iota_lib_address_mutex = {};
+static pthread_mutexattr_t iota_lib_input_address_mutex_attr = {};
+
+
 /**
  *
  * @param signing_ctx
@@ -266,13 +278,31 @@ static uint32_t construct_singature_for_input_tx(
 
 static iota_lib_tx_object_t tx_object = {};
 
+char address_buffer[81] = {0};
+
 void iota_lib_init(void){
     pthread_mutex_init(&iota_lib_tx_mutex, &iota_lib_tx_mutex_attr);
+    pthread_mutex_init(&iota_lib_address_mutex, &iota_lib_input_address_mutex_attr);
 
     bundle_mutex_init();
     conversion_mutex_init();
 }
 
+void generate_addresses_for_inputs(
+        char *seed_chars, unsigned int security,
+        iota_lib_tx_input_t *inputs, unsigned int num_inputs){
+    pthread_mutex_lock(&iota_lib_address_mutex);
+    for(int i = 0; i <= num_inputs; i++){
+        clear_input_address_buffer(address_buffer);
+
+        iota_lib_tx_input_t * current_input = &inputs[i];
+        uint32_t address_index = current_input->seed_address_index;
+
+        iota_lib_get_address(seed_chars, address_index, security, address_buffer);
+        memcpy(current_input->address, address_buffer, 81);
+    }
+    pthread_mutex_unlock(&iota_lib_address_mutex);
+}
 
 iota_lib_status_codes_t iota_lib_create_tx_bundle(
         iota_lib_bundle_hash_receiver_ptr_t bundle_hash_receiver_ptr,
@@ -287,6 +317,8 @@ iota_lib_status_codes_t iota_lib_create_tx_bundle(
     unsigned int num_zeros = bundle_desciption->zero_txs_length;
     iota_lib_tx_input_t *inputs = bundle_desciption->input_txs;
     unsigned int num_inputs = bundle_desciption->input_txs_length;
+
+    generate_addresses_for_inputs(seed_chars, (unsigned int)security, inputs, num_inputs);
 
     char bundle_hash[81];
     tryte_t normalized_bundle_hash_ptr[81];
@@ -350,7 +382,7 @@ iota_lib_status_codes_t iota_lib_create_tx_bundle(
         clear_tx_object_buffer(&tx_object);
 
         SIGNING_CTX signing_ctx;
-        signing_initialize(&signing_ctx, seed_bytes, inputs[i].key_index, security,
+        signing_initialize(&signing_ctx, seed_bytes, inputs[i].seed_address_index, security,
                            normalized_bundle_hash_ptr);
 
         tx_object.value = -inputs[i].value;

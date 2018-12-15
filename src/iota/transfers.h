@@ -37,7 +37,7 @@ typedef struct {
 typedef struct {
         int64_t value;
         char address[81];
-        uint32_t key_index;
+        uint32_t seed_address_index;
 } iota_lib_tx_input_t;
 
 typedef struct {
