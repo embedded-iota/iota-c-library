@@ -33,7 +33,7 @@ static char *int64_to_chars(int64_t value, char *chars, unsigned int num_trytes)
     return chars + num_trytes;
 }
 
-void iota_wallet_get_address(char seed[81], uint32_t idx, unsigned int security, char address[81]) {
+void iota_lib_get_address(char seed[81], uint32_t idx, unsigned int security, char address[81]) {
     unsigned char trytes_bytes_buffer[48];
     unsigned char seed_bytes[48];
     chars_to_bytes(seed, seed_bytes, 81);
@@ -53,7 +53,7 @@ static char *char_copy(char *destination, const char *source, unsigned int len) 
  * @param tag_increment
  * @param tx the transaction where the tag will get incremented
  */
-static void increment_obsolete_tag(unsigned int tag_increment, iota_wallet_tx_output_t *tx) {
+static void increment_obsolete_tag(unsigned int tag_increment, iota_lib_tx_output_t *tx) {
     char extended_tag[81];
     unsigned char tag_bytes[48];
     rpad_chars(extended_tag, tx->tag, NUM_HASH_TRYTES);
@@ -69,8 +69,8 @@ static void clear_transaction_char_buffer(char *buffer) {
     memset(buffer, 0, 2672);
 }
 
-void iota_wallet_construct_raw_transaction_chars(char * buffer, char *bundle_hash,
-                                                 iota_wallet_tx_object_t *tx) {
+void iota_lib_construct_raw_transaction_chars(char * buffer, char *bundle_hash,
+                                                 iota_lib_tx_object_t *tx) {
     clear_transaction_char_buffer(buffer);
     buffer[2673] = '\0';
     char *c = buffer;
@@ -92,7 +92,7 @@ void iota_wallet_construct_raw_transaction_chars(char * buffer, char *bundle_has
  *
  * @param tx_object
  */
-static void clear_tx_object_buffer(iota_wallet_tx_object_t *tx_object) {
+static void clear_tx_object_buffer(iota_lib_tx_object_t *tx_object) {
     memset(tx_object->address, '9', 81);
     memset(tx_object->obsoleteTag, '9', 27);
     memset(tx_object->signatureMessageFragment, '9', 2187);
@@ -109,7 +109,7 @@ static void clear_tx_object_buffer(iota_wallet_tx_object_t *tx_object) {
  * @param input
  */
 static void add_input_tx_to_bundle(
-        BUNDLE_CTX *ctx, uint8_t security, uint32_t timestamp, iota_wallet_tx_input_t *input) {
+        BUNDLE_CTX *ctx, uint8_t security, uint32_t timestamp, iota_lib_tx_input_t *input) {
 
     bundle_set_internal_address(ctx, input->address, input->key_index);
     bundle_add_tx(ctx, -input->value, ZERO_TAG, timestamp);
@@ -127,7 +127,7 @@ static void add_input_tx_to_bundle(
  * @param timestamp
  * @param output
  */
-static void add_output_tx_to_bundle(BUNDLE_CTX *ctx, uint32_t timestamp, iota_wallet_tx_output_t *output) {
+static void add_output_tx_to_bundle(BUNDLE_CTX *ctx, uint32_t timestamp, iota_lib_tx_output_t *output) {
 
     bundle_set_external_address(ctx, output->address);
     // assure that the tag is 27 chars
@@ -137,7 +137,7 @@ static void add_output_tx_to_bundle(BUNDLE_CTX *ctx, uint32_t timestamp, iota_wa
 
 static void normalize_bundle_hash(
         tryte_t normalized_bundle_hash_ptr[81],
-        BUNDLE_CTX *bundle_ctx, uint32_t tag_increment, iota_wallet_tx_output_t *increment_output) {
+        BUNDLE_CTX *bundle_ctx, uint32_t tag_increment, iota_lib_tx_output_t *increment_output) {
 
     increment_obsolete_tag(tag_increment, increment_output);
     bundle_get_normalized_hash(bundle_ctx, normalized_bundle_hash_ptr);
@@ -152,12 +152,12 @@ static void normalize_bundle_hash(
  */
 static void construct_bundle(
         BUNDLE_CTX *bundle_ctx, tryte_t normalized_bundle_hash_ptr[81],
-        iota_wallet_bundle_description_t *bundle_object_ptr) {
+        iota_lib_bundle_description_t *bundle_object_ptr) {
 
     uint8_t security = bundle_object_ptr->security;
-    iota_wallet_tx_output_t *outputs = bundle_object_ptr->output_txs;
+    iota_lib_tx_output_t *outputs = bundle_object_ptr->output_txs;
     unsigned int num_outputs = bundle_object_ptr->output_txs_length;
-    iota_wallet_tx_input_t *inputs = bundle_object_ptr->input_txs;
+    iota_lib_tx_input_t *inputs = bundle_object_ptr->input_txs;
     unsigned int num_inputs = bundle_object_ptr->input_txs_length;
     uint32_t timestamp = bundle_object_ptr->timestamp;
 
@@ -187,7 +187,7 @@ static void construct_bundle(
  * @param timestamp
  */
 static void cpy_output_tx_to_tx_object(
-        iota_wallet_tx_object_t *tx_object, iota_wallet_tx_output_t *output,
+        iota_lib_tx_object_t *tx_object, iota_lib_tx_output_t *output,
         uint32_t index, uint32_t last_index, uint32_t timestamp) {
 
     memcpy(tx_object->address, output->address, 81);
@@ -207,7 +207,7 @@ static void cpy_output_tx_to_tx_object(
  * @param timestamp
  */
 static void cpy_zero_tx_to_tx_object(
-        iota_wallet_tx_object_t *tx_object, iota_wallet_tx_zero_t *zero,
+        iota_lib_tx_object_t *tx_object, iota_lib_tx_zero_t *zero,
         uint32_t index, uint32_t last_index, uint32_t timestamp) {
 
     rpad_chars(tx_object->signatureMessageFragment, zero->message, 2187);
@@ -219,8 +219,8 @@ static void cpy_zero_tx_to_tx_object(
     tx_object->lastIndex = last_index;
 }
 
-static pthread_mutex_t iota_wallet_tx_mutex = {};
-static pthread_mutexattr_t iota_wallet_tx_mutex_attr = {};
+static pthread_mutex_t iota_lib_tx_mutex = {};
+static pthread_mutexattr_t iota_lib_tx_mutex_attr = {};
 
 /**
  *
@@ -231,9 +231,9 @@ static pthread_mutexattr_t iota_wallet_tx_mutex_attr = {};
  * @return The next empty tx slot index for the next signature segment. Returns 0 at receiver error.
  */
 static uint32_t construct_singature_for_input_tx(
-        iota_wallet_tx_receiver_ptr_t tx_receiver_ptr,
+        iota_lib_tx_receiver_ptr_t tx_receiver_ptr,
         SIGNING_CTX *signing_ctx,
-        iota_wallet_tx_object_t *tx_object,
+        iota_lib_tx_object_t *tx_object,
         uint8_t security,
         uint32_t zero_tx_start_index) {
 
@@ -243,7 +243,7 @@ static uint32_t construct_singature_for_input_tx(
 
         // Because the first signature segment is in the input tx itself.
         if (i > 0) {
-            pthread_mutex_lock(&iota_wallet_tx_mutex);
+            pthread_mutex_lock(&iota_lib_tx_mutex);
             tx_object->value = 0;
             tx_object->currentIndex = zero_tx_start_index + i;
             tx_index = tx_object->currentIndex;
@@ -253,10 +253,10 @@ static uint32_t construct_singature_for_input_tx(
         bytes_to_chars(signature_bytes, tx_object->signatureMessageFragment, 27 * 48);
 
         if (tx_receiver_ptr(tx_object)) {
-            pthread_mutex_unlock(&iota_wallet_tx_mutex);
+            pthread_mutex_unlock(&iota_lib_tx_mutex);
             memset(tx_object->signatureMessageFragment, '9', 2187);
         } else {
-            pthread_mutex_unlock(&iota_wallet_tx_mutex);
+            pthread_mutex_unlock(&iota_lib_tx_mutex);
             return 0;
         }
     }
@@ -264,28 +264,28 @@ static uint32_t construct_singature_for_input_tx(
     return tx_index + 1;
 }
 
-static iota_wallet_tx_object_t tx_object = {};
+static iota_lib_tx_object_t tx_object = {};
 
-void iota_wallet_init(void){
-    pthread_mutex_init(&iota_wallet_tx_mutex, &iota_wallet_tx_mutex_attr);
+void iota_lib_init(void){
+    pthread_mutex_init(&iota_lib_tx_mutex, &iota_lib_tx_mutex_attr);
 
     bundle_mutex_init();
     conversion_mutex_init();
 }
 
 
-iota_wallet_status_codes_t iota_wallet_create_tx_bundle(
-        iota_wallet_bundle_hash_receiver_ptr_t bundle_hash_receiver_ptr,
-        iota_wallet_tx_receiver_ptr_t tx_receiver_ptr,
-        iota_wallet_bundle_description_t *bundle_desciption) {
+iota_lib_status_codes_t iota_lib_create_tx_bundle(
+        iota_lib_bundle_hash_receiver_ptr_t bundle_hash_receiver_ptr,
+        iota_lib_tx_receiver_ptr_t tx_receiver_ptr,
+        iota_lib_bundle_description_t *bundle_desciption) {
 
     char *seed_chars = bundle_desciption->seed;
     uint8_t security = bundle_desciption->security;
-    iota_wallet_tx_output_t *outputs = bundle_desciption->output_txs;
+    iota_lib_tx_output_t *outputs = bundle_desciption->output_txs;
     unsigned int num_outputs = bundle_desciption->output_txs_length;
-    iota_wallet_tx_zero_t *zeros = bundle_desciption->zero_txs;
+    iota_lib_tx_zero_t *zeros = bundle_desciption->zero_txs;
     unsigned int num_zeros = bundle_desciption->zero_txs_length;
-    iota_wallet_tx_input_t *inputs = bundle_desciption->input_txs;
+    iota_lib_tx_input_t *inputs = bundle_desciption->input_txs;
     unsigned int num_inputs = bundle_desciption->input_txs_length;
 
     char bundle_hash[81];
@@ -307,7 +307,7 @@ iota_wallet_status_codes_t iota_wallet_create_tx_bundle(
     // OUTPUT TX OBJECTS
     int idx = 0;
     for (unsigned int i = 0; i < num_outputs; i++) {
-        pthread_mutex_lock(&iota_wallet_tx_mutex);
+        pthread_mutex_lock(&iota_lib_tx_mutex);
 
         clear_tx_object_buffer(&tx_object);
 
@@ -316,16 +316,16 @@ iota_wallet_status_codes_t iota_wallet_create_tx_bundle(
 
         if (tx_receiver_ptr(&tx_object)) {
             idx++;
-            pthread_mutex_unlock(&iota_wallet_tx_mutex);
+            pthread_mutex_unlock(&iota_lib_tx_mutex);
         } else {
-            pthread_mutex_unlock(&iota_wallet_tx_mutex);
+            pthread_mutex_unlock(&iota_lib_tx_mutex);
             return BUNDLE_CREATION_TRANSACTION_RECEIVER_ERROR;
         }
     }
 
     // ZERO TX OBJECTS
     for (unsigned int i = 0; i < num_zeros; i++) {
-        pthread_mutex_lock(&iota_wallet_tx_mutex);
+        pthread_mutex_lock(&iota_lib_tx_mutex);
 
         clear_tx_object_buffer(&tx_object);
 
@@ -334,9 +334,9 @@ iota_wallet_status_codes_t iota_wallet_create_tx_bundle(
 
         if (tx_receiver_ptr(&tx_object)){
             idx++;
-            pthread_mutex_unlock(&iota_wallet_tx_mutex);
+            pthread_mutex_unlock(&iota_lib_tx_mutex);
         } else {
-            pthread_mutex_unlock(&iota_wallet_tx_mutex);
+            pthread_mutex_unlock(&iota_lib_tx_mutex);
             return BUNDLE_CREATION_TRANSACTION_RECEIVER_ERROR;
         }
     }
@@ -346,7 +346,7 @@ iota_wallet_status_codes_t iota_wallet_create_tx_bundle(
     unsigned char seed_bytes[48];
     chars_to_bytes(seed_chars, seed_bytes, 81);
     for (unsigned int i = 0; i < num_inputs; i++) {
-        pthread_mutex_lock(&iota_wallet_tx_mutex);
+        pthread_mutex_lock(&iota_lib_tx_mutex);
         clear_tx_object_buffer(&tx_object);
 
         SIGNING_CTX signing_ctx;

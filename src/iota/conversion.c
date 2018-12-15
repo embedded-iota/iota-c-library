@@ -32,11 +32,11 @@ static const uint32_t TRIT_82[12] = {0xd56d7cc3, 0xb6bf0c69, 0xa149e834,
                                      0x4d98d5ce, 0x1};
 #endif // USE_UNSAFE_INCREMENT_TAG
 
-pthread_mutex_t iota_wallet_trits_mutex = {};
-pthread_mutexattr_t iota_wallet_trits_mutex_attr = {};
+pthread_mutex_t iota_lib_trits_mutex = {};
+pthread_mutexattr_t iota_lib_trits_mutex_attr = {};
 
 void conversion_mutex_init(void){
-    pthread_mutex_init(&iota_wallet_trits_mutex, &iota_wallet_trits_mutex_attr);
+    pthread_mutex_init(&iota_lib_trits_mutex, &iota_lib_trits_mutex_attr);
 }
 
 trit_t trits_buffer[243];
@@ -389,18 +389,18 @@ void trits_to_bytes(const trit_t *trits, unsigned char *bytes)
 void trytes_to_bytes(const tryte_t *trytes, unsigned char *bytes)
 {
     //trit_t trits_buffer[243];
-    pthread_mutex_lock(&iota_wallet_trits_mutex);
+    pthread_mutex_lock(&iota_lib_trits_mutex);
     clear_trits_buffer();
     trytes_to_trits(trytes, trits_buffer, 81);
     trits_to_bytes(trits_buffer, bytes);
-    pthread_mutex_unlock(&iota_wallet_trits_mutex);
+    pthread_mutex_unlock(&iota_lib_trits_mutex);
 }
 
 
 void chars_to_bytes(const char *chars, unsigned char *bytes,
                     unsigned int chars_len)
 {
-    pthread_mutex_lock(&iota_wallet_trits_mutex);
+    pthread_mutex_lock(&iota_lib_trits_mutex);
     clear_trits_buffer();
     for (unsigned int i = 0; i < chars_len / 81; i++) {
 
@@ -410,7 +410,7 @@ void chars_to_bytes(const char *chars, unsigned char *bytes,
 
         trits_to_bytes(trits_buffer, bytes + i * 48);
     }
-    pthread_mutex_unlock(&iota_wallet_trits_mutex);
+    pthread_mutex_unlock(&iota_lib_trits_mutex);
 }
 
 static inline void bytes_to_trits(const unsigned char *bytes, trit_t *trits)
@@ -422,11 +422,11 @@ static inline void bytes_to_trits(const unsigned char *bytes, trit_t *trits)
 
 void bytes_to_trytes(const unsigned char *bytes, tryte_t *trytes)
 {
-    pthread_mutex_lock(&iota_wallet_trits_mutex);
+    pthread_mutex_lock(&iota_lib_trits_mutex);
     clear_trits_buffer();
     bytes_to_trits(bytes, trits_buffer);
     trits_to_trytes(trits_buffer, trytes, 243);
-    pthread_mutex_unlock(&iota_wallet_trits_mutex);
+    pthread_mutex_unlock(&iota_lib_trits_mutex);
 }
 
 void bytes_to_chars(const unsigned char *bytes, char *chars,

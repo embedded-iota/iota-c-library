@@ -16,10 +16,10 @@
 #define TX_BYTES(C) ((C)->bytes + (C)->current_index * 96)
 
 
-pthread_mutex_t iota_wallet_bundle_essence_mutex = {};
-pthread_mutexattr_t iota_wallet_bundle_essence_mutex_attr = {};
+pthread_mutex_t iota_lib_bundle_essence_mutex = {};
+pthread_mutexattr_t iota_lib_bundle_essence_mutex_attr = {};
 void bundle_mutex_init(void){
-    pthread_mutex_init(&iota_wallet_bundle_essence_mutex, &iota_wallet_bundle_essence_mutex_attr);
+    pthread_mutex_init(&iota_lib_bundle_essence_mutex, &iota_lib_bundle_essence_mutex_attr);
 }
 
 
@@ -63,7 +63,7 @@ static void create_bundle_bytes(int64_t value, const char *tag,
                                 uint32_t timestamp, uint32_t current_index,
                                 uint32_t last_index, unsigned char *bytes)
 {
-    pthread_mutex_lock(&iota_wallet_bundle_essence_mutex);
+    pthread_mutex_lock(&iota_lib_bundle_essence_mutex);
     clear_build_essence_trits();
 
     int64_to_trits(value, bundle_essence_trits, 81);
@@ -74,7 +74,7 @@ static void create_bundle_bytes(int64_t value, const char *tag,
 
     // now we have exactly one chunk of 243 trits
     trits_to_bytes(bundle_essence_trits, bytes);
-    pthread_mutex_unlock(&iota_wallet_bundle_essence_mutex);
+    pthread_mutex_unlock(&iota_lib_bundle_essence_mutex);
 }
 
 uint32_t bundle_add_tx(BUNDLE_CTX *ctx, int64_t value, const char *tag,
