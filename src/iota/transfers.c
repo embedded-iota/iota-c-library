@@ -292,7 +292,7 @@ void generate_addresses_for_inputs(
         char *seed_chars, unsigned int security,
         iota_lib_tx_input_t *inputs, unsigned int num_inputs){
     pthread_mutex_lock(&iota_lib_address_mutex);
-    for(unsigned int i = 0; i <= num_inputs; i++){
+    for(unsigned int i = 0; i < num_inputs; i++){
         clear_input_address_buffer(address_buffer);
 
         iota_lib_tx_input_t * current_input = &inputs[i];
