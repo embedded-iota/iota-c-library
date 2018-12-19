@@ -242,6 +242,11 @@ static void cpy_zero_tx_to_tx_object(
     tx_object->lastIndex = last_index;
 }
 
+unsigned char signature_bytes[1296];
+static void clear_signature_bytes(unsigned char signature_bytes[1296]){
+    memset(signature_bytes, 0, 1296);
+}
+
 /**
  *
  * @param signing_ctx
@@ -270,8 +275,7 @@ static uint32_t construct_singature_for_input_tx(
         }
 
         pthread_mutex_lock(&iota_lib_signature_mutex);
-
-        unsigned char signature_bytes[1296];
+        clear_signature_bytes(signature_bytes);
         signing_next_fragment(signing_ctx, signature_bytes);
         bytes_to_chars(signature_bytes, tx_object->signatureMessageFragment, 1296);
 
