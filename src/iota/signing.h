@@ -19,7 +19,7 @@ typedef struct SIGNING_CTX {
         uint32_t fragment_index; // index of the next fragment
         uint32_t last_fragment; // final fragment
 
-        tryte_t hash[81]; // bundle hash used for signing
+        const tryte_t * hash; // bundle hash used for signing
 } SIGNING_CTX;
 
 /** @brief Initializes the signing context for one complete signature.

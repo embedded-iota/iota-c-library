@@ -242,11 +242,6 @@ static void cpy_zero_tx_to_tx_object(
     tx_object->lastIndex = last_index;
 }
 
-unsigned char signature_bytes[1296];
-static void clear_signature_bytes(unsigned char signature_bytes[1296]){
-    memset(signature_bytes, 0, 1296);
-}
-
 /**
  *
  * @param signing_ctx
@@ -275,8 +270,8 @@ static uint32_t construct_singature_for_input_tx(
         }
 
         pthread_mutex_lock(&iota_lib_signature_mutex);
-        clear_signature_bytes(signature_bytes);
-        //unsigned char signature_bytes[1296];
+
+        unsigned char signature_bytes[1296];
         signing_next_fragment(signing_ctx, signature_bytes);
         bytes_to_chars(signature_bytes, tx_object->signatureMessageFragment, 1296);
 
@@ -326,12 +321,15 @@ void generate_addresses_for_inputs(
     pthread_mutex_unlock(&iota_lib_address_mutex);
 }
 
-char bundle_hash[81];
-tryte_t normalized_bundle_hash_ptr[81];
+char bundle_hash[81] = {0};
 
-void clear_bundle(char bundle_hash[81], tryte_t normalized_bundle_hash_ptr[81]){
-    memset(bundle_hash, '9', 81);
-    memset(normalized_bundle_hash_ptr, '9', 81);
+void clear_bundle_hash(char bundle_hash[81]){
+    memset(bundle_hash, '\0', 81);
+}
+
+tryte_t normalized_bundle_hash_ptr[81] = {0};
+void clear_normalized_bundle_hash(tryte_t normalized_bundle_hash_ptr[81]){
+    memset(normalized_bundle_hash_ptr, '\0', 81);
 }
 
 iota_lib_status_codes_t iota_lib_create_tx_bundle(
@@ -350,11 +348,10 @@ iota_lib_status_codes_t iota_lib_create_tx_bundle(
 
     generate_addresses_for_inputs(seed_chars, (unsigned int)security, inputs, num_inputs);
 
-    //char bundle_hash[81];
-    //tryte_t normalized_bundle_hash_ptr[81];
     pthread_mutex_lock(&iota_lib_normalized_bundle_hash_mutex);
     pthread_mutex_lock(&iota_lib_bundle_hash_mutex);
-    clear_bundle(bundle_hash, normalized_bundle_hash_ptr);
+    clear_bundle_hash(bundle_hash);
+    clear_normalized_bundle_hash(normalized_bundle_hash_ptr);
 
     BUNDLE_CTX bundle_ctx;
     construct_bundle(&bundle_ctx, normalized_bundle_hash_ptr, bundle_desciption);
@@ -404,6 +401,7 @@ iota_lib_status_codes_t iota_lib_create_tx_bundle(
             return BUNDLE_CREATION_TRANSACTION_RECEIVER_ERROR;
         }
     }
+
     pthread_mutex_unlock(&iota_lib_normalized_bundle_hash_mutex);
 
     // OUTPUT TX OBJECTS
