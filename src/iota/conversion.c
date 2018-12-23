@@ -35,8 +35,12 @@ static const uint32_t TRIT_82[12] = {0xd56d7cc3, 0xb6bf0c69, 0xa149e834,
 pthread_mutex_t iota_lib_trits_mutex = {};
 pthread_mutexattr_t iota_lib_trits_mutex_attr = {};
 
+pthread_mutex_t iota_lib_trytes_mutex = {};
+pthread_mutexattr_t iota_lib_trytes_mutex_attr = {};
+
 void conversion_mutex_init(void){
     pthread_mutex_init(&iota_lib_trits_mutex, &iota_lib_trits_mutex_attr);
+    pthread_mutex_init(&iota_lib_trytes_mutex, &iota_lib_trytes_mutex_attr);
 }
 
 trit_t trits_buffer[243];
@@ -388,7 +392,6 @@ void trits_to_bytes(const trit_t *trits, unsigned char *bytes)
 
 void trytes_to_bytes(const tryte_t *trytes, unsigned char *bytes)
 {
-    //trit_t trits_buffer[243];
     pthread_mutex_lock(&iota_lib_trits_mutex);
     clear_trits_buffer();
     trytes_to_trits(trytes, trits_buffer, 81);
@@ -429,13 +432,20 @@ void bytes_to_trytes(const unsigned char *bytes, tryte_t *trytes)
     pthread_mutex_unlock(&iota_lib_trits_mutex);
 }
 
+tryte_t trytes[81];
+void clear_trytes(tryte_t * trytes_buffer){
+    memset(trytes_buffer, 0, 81);
+}
+
 void bytes_to_chars(const unsigned char *bytes, char *chars,
                     unsigned int bytes_len)
 {
     for (unsigned int i = 0; i < bytes_len / 48; i++) {
-        tryte_t trytes[81];
+        pthread_mutex_lock(&iota_lib_trytes_mutex);
+        clear_trytes(trytes);
         bytes_to_trytes(bytes + i * 48, trytes);
         trytes_to_chars(trytes, chars + i * 81, 81);
+        pthread_mutex_unlock(&iota_lib_trytes_mutex);
     }
 }
 
@@ -471,10 +481,13 @@ void bytes_increment_trit_area_81(unsigned char *bytes)
     bigint_add(bigint, bigint, TRIT_82);
     bigint_to_bytes(bigint, bytes);
 #else
-    trit_t trits[243];
-    bytes_to_trits(bytes, trits);
-    increment_trit_aera(trits, 81, 81);
-    trits_to_bytes(trits, bytes);
+    pthread_mutex_lock(&iota_lib_trits_mutex);
+    clear_trits_buffer();
+
+    bytes_to_trits(bytes, trits_buffer);
+    increment_trit_aera(trits_buffer, 81, 81);
+    trits_to_bytes(trits_buffer, bytes);
+    pthread_mutex_unlock(&iota_lib_trits_mutex);
 #endif // USE_UNSAFE_INCREMENT_TAG
 }
 

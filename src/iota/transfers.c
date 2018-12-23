@@ -36,6 +36,18 @@ static pthread_mutexattr_t iota_lib_signature_mutex_attr = {};
 static pthread_mutex_t iota_lib_signing_ctx_mutex = {};
 static pthread_mutexattr_t iota_lib_signing_ctx_mutex_attr = {};
 
+static pthread_mutex_t iota_lib_bundle_ctx_mutex = {};
+static pthread_mutexattr_t iota_lib_bundle_ctx_mutex_attr = {};
+
+static pthread_mutex_t iota_lib_seed_bytes_mutex = {};
+static pthread_mutexattr_t iota_lib_seed_bytes_mutex_attr = {};
+
+static pthread_mutex_t iota_lib_extended_tag_mutex = {};
+static pthread_mutexattr_t iota_lib_extended_tag_mutex_attr = {};
+
+static pthread_mutex_t iota_lib_tag_bytes_mutex = {};
+static pthread_mutexattr_t iota_lib_tag_bytes_mutex_attr = {};
+
 /**
  *
  * @param value the source value
@@ -66,14 +78,28 @@ static char *char_copy(char *destination, const char *source, unsigned int len) 
     return destination + len;
 }
 
+char extended_tag[81];
+void clear_extended_tag(char * tag){
+    memset(tag, 0, 81);
+}
+
+unsigned char tag_bytes[48];
+void clear_tag_bytes(unsigned char * bytes){
+    memset(bytes, 0, 48);
+}
+
 /**
  * @brief M (13) bug tag increment.
  * @param tag_increment
  * @param tx the transaction where the tag will get incremented
  */
 static void increment_obsolete_tag(unsigned int tag_increment, iota_lib_tx_output_t *tx) {
-    char extended_tag[81];
-    unsigned char tag_bytes[48];
+    pthread_mutex_lock(&iota_lib_extended_tag_mutex);
+    pthread_mutex_lock(&iota_lib_tag_bytes_mutex);
+    clear_tag_bytes(tag_bytes);
+    clear_extended_tag(extended_tag);
+
+    //unsigned char tag_bytes[48];
     rpad_chars(extended_tag, tx->tag, NUM_HASH_TRYTES);
     chars_to_bytes(extended_tag, tag_bytes, NUM_HASH_TRYTES);
 
@@ -81,6 +107,8 @@ static void increment_obsolete_tag(unsigned int tag_increment, iota_lib_tx_outpu
     bytes_to_chars(tag_bytes, extended_tag, 48);
 
     memcpy(tx->tag, extended_tag, 27);
+    pthread_mutex_unlock(&iota_lib_tag_bytes_mutex);
+    pthread_mutex_unlock(&iota_lib_extended_tag_mutex);
 }
 
 static void clear_transaction_char_buffer(char *buffer) {
@@ -308,6 +336,9 @@ void iota_lib_init(void){
             &iota_lib_normalized_bundle_hash_mutex, &iota_lib_normalized_bundle_hash_mutex_attr);
     pthread_mutex_init(&iota_lib_signature_mutex, &iota_lib_signature_mutex_attr);
     pthread_mutex_init(&iota_lib_signing_ctx_mutex, &iota_lib_signing_ctx_mutex_attr);
+    pthread_mutex_init(&iota_lib_bundle_ctx_mutex, &iota_lib_bundle_ctx_mutex_attr);
+    pthread_mutex_init(&iota_lib_seed_bytes_mutex, &iota_lib_seed_bytes_mutex_attr);
+    pthread_mutex_init(&iota_lib_extended_tag_mutex, &iota_lib_extended_tag_mutex_attr);
 
     bundle_mutex_init();
     conversion_mutex_init();
@@ -347,6 +378,21 @@ void clear_signing_ctx(SIGNING_CTX * ctx){
     ctx->fragment_index = 0;
 }
 
+BUNDLE_CTX bundle_ctx = {};
+void clear_bundle_ctx(BUNDLE_CTX * ctx){
+    memset(ctx->hash, 0, 48);
+    memset(ctx->indices, 0, 8);
+    memset(ctx->values, 0, 8);
+    memset(ctx->bytes, 0, 768);
+    ctx->last_index = 0;
+    ctx->current_index = 0;
+}
+
+unsigned char seed_bytes[48];
+void clear_seed_bytes(unsigned char * bytes){
+    memset(bytes, 0, 48);
+}
+
 iota_lib_status_codes_t iota_lib_create_tx_bundle(
         iota_lib_bundle_hash_receiver_ptr_t bundle_hash_receiver_ptr,
         iota_lib_tx_receiver_ptr_t tx_receiver_ptr,
@@ -368,10 +414,14 @@ iota_lib_status_codes_t iota_lib_create_tx_bundle(
     clear_bundle_hash(bundle_hash);
     clear_normalized_bundle_hash(normalized_bundle_hash_ptr);
 
-    BUNDLE_CTX bundle_ctx = {};
+    //BUNDLE_CTX bundle_ctx = {};
+    pthread_mutex_lock(&iota_lib_bundle_ctx_mutex);
+    clear_bundle_ctx(&bundle_ctx);
 
     construct_bundle(&bundle_ctx, normalized_bundle_hash_ptr, bundle_desciption);
     bytes_to_chars(bundle_get_hash(&bundle_ctx), bundle_hash, 48);
+
+    pthread_mutex_unlock(&iota_lib_bundle_ctx_mutex);
 
     if(!bundle_hash_receiver_ptr(bundle_hash)){
         return BUNDLE_CREATION_BUNDLE_RECEIVER_ERROR;
@@ -393,7 +443,9 @@ iota_lib_status_codes_t iota_lib_create_tx_bundle(
      */
     int input_id = num_output_and_zero_tx;
     uint32_t next_signature_segment_index = last_without_security_tx_index;
-    unsigned char seed_bytes[48];
+
+    pthread_mutex_lock(&iota_lib_seed_bytes_mutex);
+    clear_seed_bytes(seed_bytes);
     chars_to_bytes(seed_chars, seed_bytes, 81);
     for (unsigned int i = 0; i < num_inputs; i++) {
         pthread_mutex_lock(&iota_lib_tx_mutex);
@@ -421,7 +473,7 @@ iota_lib_status_codes_t iota_lib_create_tx_bundle(
             return BUNDLE_CREATION_TRANSACTION_RECEIVER_ERROR;
         }
     }
-
+    pthread_mutex_unlock(&iota_lib_seed_bytes_mutex);
     pthread_mutex_unlock(&iota_lib_normalized_bundle_hash_mutex);
 
     // OUTPUT TX OBJECTS
