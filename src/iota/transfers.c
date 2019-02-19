@@ -69,9 +69,8 @@ void iota_wallet_construct_raw_transaction_chars(char * buffer, char *bundle_has
     c = int64_to_chars(tx->currentIndex, c, 9);
     c = int64_to_chars(tx->lastIndex, c, 9);
     c = char_copy(c, bundle_hash, NUM_HASH_TRYTES);
-    c = int64_to_chars((int64_t) 0, c, 9);
-    c = int64_to_chars((int64_t) 0, c, 9);
-    c = int64_to_chars((int64_t) 0, c, 9);
+    c += NUM_HASH_TRYTES + NUM_HASH_TRYTES;	/* skip trunk and branch */
+    c = char_copy(c, tx->tag, NUM_TAG_TRYTES);
 }
 
 /**
@@ -81,6 +80,7 @@ void iota_wallet_construct_raw_transaction_chars(char * buffer, char *bundle_has
 static void clear_tx_object_buffer(iota_wallet_tx_object_t *tx_object) {
     memset(tx_object->address, '9', NUM_ADDR_TRYTES);
     memset(tx_object->obsoleteTag, '9', NUM_TAG_TRYTES);
+    memset(tx_object->tag, '9', NUM_TAG_TRYTES);
     memset(tx_object->signatureMessageFragment, '9', 2187);
 
     tx_object->timestamp = 0;
@@ -180,6 +180,7 @@ static void cpy_output_tx_to_tx_object(
     memcpy(tx_object->address, output->address, NUM_ADDR_TRYTES);
     tx_object->value = output->value;
     rpad_chars(tx_object->obsoleteTag, output->tag, NUM_TAG_TRYTES);
+    rpad_chars(tx_object->tag, output->tag, NUM_TAG_TRYTES);
     tx_object->timestamp = timestamp;
     tx_object->currentIndex = index;
     tx_object->lastIndex = last_index;
@@ -201,6 +202,7 @@ static void cpy_zero_tx_to_tx_object(
     memcpy(tx_object->address, zero->address, NUM_ADDR_TRYTES);
     tx_object->value = 0;
     rpad_chars(tx_object->obsoleteTag, zero->tag, NUM_TAG_TRYTES);
+    rpad_chars(tx_object->tag, zero->tag, NUM_TAG_TRYTES);
     tx_object->timestamp = timestamp;
     tx_object->currentIndex = index;
     tx_object->lastIndex = last_index;
