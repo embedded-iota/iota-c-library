@@ -20,6 +20,7 @@ void signing_initialize(SIGNING_CTX *ctx, const unsigned char *seed_bytes,
                         const tryte_t *normalized_hash)
 {
     initialize_state(seed_bytes, address_idx, ctx->state);
+    ctx->fragment_index = 0;
     ctx->last_fragment = NUM_SIGNATURE_FRAGMENTS(security) - 1;
 
     memcpy(ctx->hash, normalized_hash, NUM_HASH_TRYTES);
