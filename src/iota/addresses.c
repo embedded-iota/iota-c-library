@@ -109,3 +109,19 @@ void get_address_with_checksum(const unsigned char *address_bytes,
     memcpy(full_address + NUM_HASH_TRYTES,
               full_checksum + NUM_HASH_TRYTES - CHECKSUM_CHARS, CHECKSUM_CHARS);
 }
+
+int address_verify_checksum(const char *full_address)
+{
+    unsigned char addr_bytes[NUM_HASH_BYTES];
+    char addr_with_cksum[NUM_HASH_TRYTES + NUM_ADDR_CKSUM_TRYTES];
+
+    chars_to_bytes(full_address, addr_bytes, NUM_HASH_TRYTES);
+    get_address_with_checksum(addr_bytes, addr_with_cksum);
+    if (!memcmp(full_address + NUM_HASH_TRYTES,
+            addr_with_cksum + NUM_HASH_TRYTES, NUM_ADDR_CKSUM_TRYTES)) {
+        return 0;
+    }
+    else {
+        return -1;
+    }
+}

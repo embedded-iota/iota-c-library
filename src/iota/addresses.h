@@ -13,4 +13,6 @@ void get_public_addr(const unsigned char *seed_bytes, uint32_t idx,
 void get_address_with_checksum(const unsigned char *address_bytes,
                                char *full_address);
 
+int address_verify_checksum(const char *full_address);
+
 #endif // ADDRESSES_H
