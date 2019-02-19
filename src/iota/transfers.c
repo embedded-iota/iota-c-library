@@ -53,13 +53,12 @@ static void increment_obsolete_tag(unsigned int tag_increment, iota_wallet_tx_ou
 }
 
 static void clear_transaction_char_buffer(char *buffer) {
-    memset(buffer, 0, 2672);
+    memset(buffer, '9', NUM_TRANSACTION_TRYTES);
 }
 
 void iota_wallet_construct_raw_transaction_chars(char * buffer, char *bundle_hash,
                                                  iota_wallet_tx_object_t *tx) {
     clear_transaction_char_buffer(buffer);
-    buffer[2673] = '\0';
     char *c = buffer;
 
     c = char_copy(c, tx->signatureMessageFragment, 2187);
