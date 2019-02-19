@@ -22,7 +22,7 @@ void signing_initialize(SIGNING_CTX *ctx, const unsigned char *seed_bytes,
     initialize_state(seed_bytes, address_idx, ctx->state);
     ctx->last_fragment = NUM_SIGNATURE_FRAGMENTS(security) - 1;
 
-    memcpy(ctx->hash, normalized_hash, 81);
+    memcpy(ctx->hash, normalized_hash, NUM_HASH_TRYTES);
 }
 
 static void generate_signature_fragment(unsigned char *state,

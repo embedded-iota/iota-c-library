@@ -48,7 +48,7 @@ void bundle_set_external_address(BUNDLE_CTX *ctx, const char *address)
     }
 
     unsigned char *bytes_ptr = TX_BYTES(ctx);
-    chars_to_bytes(address, bytes_ptr, 81);
+    chars_to_bytes(address, bytes_ptr, NUM_ADDR_TRYTES);
 }
 
 void bundle_set_internal_address(BUNDLE_CTX *ctx, const char *address,
@@ -66,7 +66,7 @@ static void create_bundle_bytes(int64_t value, const char *tag,
     clear_build_essence_trits();
 
     int64_to_trits(value, bundle_essence_trits, 81);
-    chars_to_trits(tag, bundle_essence_trits + 81, 27);
+    chars_to_trits(tag, bundle_essence_trits + 81, NUM_TAG_TRYTES);
     int64_to_trits(timestamp, bundle_essence_trits + 162, 27);
     int64_to_trits(current_index, bundle_essence_trits + 189, 27);
     int64_to_trits(last_index, bundle_essence_trits + 216, 27);
@@ -274,13 +274,13 @@ static void compute_hash(BUNDLE_CTX *ctx)
 
 static bool bundle_validate_hash(BUNDLE_CTX *ctx)
 {
-    tryte_t hash_trytes[81];
+    tryte_t hash_trytes[NUM_HASH_TRYTES];
     compute_hash(ctx);
     normalize_hash_bytes(ctx->hash, hash_trytes);
 
-    if (memchr(hash_trytes, MAX_TRYTE_VALUE, 81) != NULL) {
+    if (memchr(hash_trytes, MAX_TRYTE_VALUE, NUM_HASH_TRYTES) != NULL) {
         // if the hash is invalid, reset it to zero
-        memset(ctx->hash, 0, 48);
+        memset(ctx->hash, 0, NUM_HASH_BYTES);
         return false;
     }
 

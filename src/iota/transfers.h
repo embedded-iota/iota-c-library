@@ -12,30 +12,30 @@ typedef enum {
 
 typedef struct {
     char signatureMessageFragment[2187];
-    char address[81];
+    char address[NUM_ADDR_TRYTES];
     int64_t value;
-    char obsoleteTag[27];
-    char tag[27];
+    char obsoleteTag[NUM_TAG_TRYTES];
+    char tag[NUM_TAG_TRYTES];
     uint32_t timestamp;
     uint32_t currentIndex;
     uint32_t lastIndex;
 } iota_wallet_tx_object_t;
 
 typedef struct {
-        char address[81];
+        char address[NUM_ADDR_TRYTES];
         int64_t value;
-        char tag[27];
+        char tag[NUM_TAG_TRYTES];
 } iota_wallet_tx_output_t;
 
 typedef struct {
-    char address[81];
+    char address[NUM_ADDR_TRYTES];
     char message[2187];
-    char tag[27];
+    char tag[NUM_TAG_TRYTES];
 } iota_wallet_tx_zero_t;
 
 typedef struct {
         int64_t value;
-        char address[81];
+        char address[NUM_ADDR_TRYTES];
         uint32_t key_index;
 } iota_wallet_tx_input_t;
 

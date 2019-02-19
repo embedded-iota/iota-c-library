@@ -76,13 +76,13 @@ void iota_wallet_construct_raw_transaction_chars(char * buffer, char *bundle_has
     char *c = buffer;
 
     c = char_copy(c, tx->signatureMessageFragment, 2187);
-    c = char_copy(c, tx->address, 81);
+    c = char_copy(c, tx->address, NUM_ADDR_TRYTES);
     c = int64_to_chars(tx->value, c, 27);
-    c = char_copy(c, tx->obsoleteTag, 27);
+    c = char_copy(c, tx->obsoleteTag, NUM_TAG_TRYTES);
     c = int64_to_chars(tx->timestamp, c, 9);
     c = int64_to_chars(tx->currentIndex, c, 9);
     c = int64_to_chars(tx->lastIndex, c, 9);
-    c = char_copy(c, bundle_hash, 81);
+    c = char_copy(c, bundle_hash, NUM_HASH_TRYTES);
     c = int64_to_chars((int64_t) 0, c, 9);
     c = int64_to_chars((int64_t) 0, c, 9);
     c = int64_to_chars((int64_t) 0, c, 9);
@@ -93,8 +93,8 @@ void iota_wallet_construct_raw_transaction_chars(char * buffer, char *bundle_has
  * @param tx_object
  */
 static void clear_tx_object_buffer(iota_wallet_tx_object_t *tx_object) {
-    memset(tx_object->address, '9', 81);
-    memset(tx_object->obsoleteTag, '9', 27);
+    memset(tx_object->address, '9', NUM_ADDR_TRYTES);
+    memset(tx_object->obsoleteTag, '9', NUM_TAG_TRYTES);
     memset(tx_object->signatureMessageFragment, '9', 2187);
 
     tx_object->timestamp = 0;
@@ -131,12 +131,12 @@ static void add_output_tx_to_bundle(BUNDLE_CTX *ctx, uint32_t timestamp, iota_wa
 
     bundle_set_external_address(ctx, output->address);
     // assure that the tag is 27 chars
-    rpad_chars(output->tag, output->tag, 27);
+    rpad_chars(output->tag, output->tag, NUM_TAG_TRYTES);
     bundle_add_tx(ctx, output->value, output->tag, timestamp);
 }
 
 static void normalize_bundle_hash(
-        tryte_t normalized_bundle_hash_ptr[81],
+        tryte_t normalized_bundle_hash_ptr[NUM_HASH_TRYTES],
         BUNDLE_CTX *bundle_ctx, uint32_t tag_increment, iota_wallet_tx_output_t *increment_output) {
 
     increment_obsolete_tag(tag_increment, increment_output);
@@ -151,7 +151,8 @@ static void normalize_bundle_hash(
  * @param bundle_hash_reveicer
  */
 static void construct_bundle(
-        BUNDLE_CTX *bundle_ctx, tryte_t normalized_bundle_hash_ptr[81],
+        BUNDLE_CTX *bundle_ctx,
+        tryte_t normalized_bundle_hash_ptr[NUM_HASH_TRYTES],
         iota_wallet_bundle_description_t *bundle_object_ptr) {
 
     uint8_t security = bundle_object_ptr->security;
@@ -190,9 +191,9 @@ static void cpy_output_tx_to_tx_object(
         iota_wallet_tx_object_t *tx_object, iota_wallet_tx_output_t *output,
         uint32_t index, uint32_t last_index, uint32_t timestamp) {
 
-    memcpy(tx_object->address, output->address, 81);
+    memcpy(tx_object->address, output->address, NUM_ADDR_TRYTES);
     tx_object->value = output->value;
-    rpad_chars(tx_object->obsoleteTag, output->tag, 27);
+    rpad_chars(tx_object->obsoleteTag, output->tag, NUM_TAG_TRYTES);
     tx_object->timestamp = timestamp;
     tx_object->currentIndex = index;
     tx_object->lastIndex = last_index;
@@ -211,9 +212,9 @@ static void cpy_zero_tx_to_tx_object(
         uint32_t index, uint32_t last_index, uint32_t timestamp) {
 
     rpad_chars(tx_object->signatureMessageFragment, zero->message, 2187);
-    memcpy(tx_object->address, zero->address, 81);
+    memcpy(tx_object->address, zero->address, NUM_ADDR_TRYTES);
     tx_object->value = 0;
-    rpad_chars(tx_object->obsoleteTag, zero->tag, 27);
+    rpad_chars(tx_object->obsoleteTag, zero->tag, NUM_TAG_TRYTES);
     tx_object->timestamp = timestamp;
     tx_object->currentIndex = index;
     tx_object->lastIndex = last_index;
@@ -287,11 +288,11 @@ iota_wallet_status_codes_t iota_wallet_create_tx_bundle(
     iota_wallet_tx_input_t *inputs = bundle_desciption->input_txs;
     unsigned int num_inputs = bundle_desciption->input_txs_length;
 
-    char bundle_hash[81];
-    tryte_t normalized_bundle_hash_ptr[81];
+    char bundle_hash[NUM_HASH_TRYTES];
+    tryte_t normalized_bundle_hash_ptr[NUM_HASH_TRYTES];
     BUNDLE_CTX bundle_ctx;
     construct_bundle(&bundle_ctx, normalized_bundle_hash_ptr, bundle_desciption);
-    bytes_to_chars(bundle_get_hash(&bundle_ctx), bundle_hash, 48);
+    bytes_to_chars(bundle_get_hash(&bundle_ctx), bundle_hash, NUM_HASH_BYTES);
 
     if(!bundle_hash_receiver_ptr(bundle_hash)){
         return BUNDLE_CREATION_BUNDLE_RECEIVER_ERROR;
@@ -356,7 +357,7 @@ iota_wallet_status_codes_t iota_wallet_create_tx_bundle(
         tx_object.timestamp = timestamp;
         tx_object.currentIndex = (uint32_t) idx;
         tx_object.lastIndex = last_tx_index;
-        char_copy(tx_object.address, inputs[i].address, 81);
+        char_copy(tx_object.address, inputs[i].address, NUM_ADDR_TRYTES);
 
         next_signature_segment_index = construct_singature_for_input_tx(
                 tx_receiver_ptr, &signing_ctx, &tx_object, security,
