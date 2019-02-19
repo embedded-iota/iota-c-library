@@ -32,11 +32,10 @@ static const uint32_t TRIT_82[12] = {0xd56d7cc3, 0xb6bf0c69, 0xa149e834,
                                      0x4d98d5ce, 0x1};
 #endif // USE_UNSAFE_INCREMENT_TAG
 
-pthread_mutex_t iota_wallet_trits_mutex = {};
-pthread_mutexattr_t iota_wallet_trits_mutex_attr = {};
+pthread_mutex_t iota_wallet_trits_mutex;
 
 void conversion_mutex_init(void){
-    pthread_mutex_init(&iota_wallet_trits_mutex, &iota_wallet_trits_mutex_attr);
+    pthread_mutex_init(&iota_wallet_trits_mutex, NULL);
 }
 
 trit_t trits_buffer[243];

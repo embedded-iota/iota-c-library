@@ -219,8 +219,7 @@ static void cpy_zero_tx_to_tx_object(
     tx_object->lastIndex = last_index;
 }
 
-static pthread_mutex_t iota_wallet_tx_mutex = {};
-static pthread_mutexattr_t iota_wallet_tx_mutex_attr = {};
+static pthread_mutex_t iota_wallet_tx_mutex;
 
 /**
  *
@@ -267,7 +266,7 @@ static uint32_t construct_singature_for_input_tx(
 static iota_wallet_tx_object_t tx_object = {};
 
 void iota_wallet_init(void){
-    pthread_mutex_init(&iota_wallet_tx_mutex, &iota_wallet_tx_mutex_attr);
+    pthread_mutex_init(&iota_wallet_tx_mutex, NULL);
 
     bundle_mutex_init();
     conversion_mutex_init();

@@ -16,10 +16,9 @@
 #define TX_BYTES(C) ((C)->bytes + (C)->current_index * 96)
 
 
-pthread_mutex_t iota_wallet_bundle_essence_mutex = {};
-pthread_mutexattr_t iota_wallet_bundle_essence_mutex_attr = {};
+pthread_mutex_t iota_wallet_bundle_essence_mutex;
 void bundle_mutex_init(void){
-    pthread_mutex_init(&iota_wallet_bundle_essence_mutex, &iota_wallet_bundle_essence_mutex_attr);
+    pthread_mutex_init(&iota_wallet_bundle_essence_mutex, NULL);
 }
 
 
