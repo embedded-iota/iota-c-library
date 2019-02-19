@@ -35,6 +35,13 @@ void trits_to_chars(const trit_t *trits, char *chars, unsigned int trit_len);
  */
 bool int64_to_trits(int64_t value, trit_t *trits, unsigned int num_trits);
 
+/** @brief Converts trits to a signed 64-bit integer.
+ *  @param trits source trit array
+ *  @param num_trits number of trits to convert
+ *  @param value pointer to signed integer to convert
+ */
+void trits_to_int64(trit_t *trits, unsigned int num_trits, int64_t *value);
+
 /** @brief Converts a balanced ternary number into a big-endian binary integer.
  *  The input must consist of exactly one 243-trit chunk and is converted into
  *  one big-endian 48-byte integer.
@@ -81,6 +88,21 @@ void chars_to_bytes(const char *chars, unsigned char *bytes, unsigned int chars_
 int chars_to_trytes(const char chars_in[], tryte_t trytes_out[],
                     unsigned int len);
 
+/** @brief Converts a signed 64-bit integer to an array of chars.
+ *  @param value the source value
+ *  @param chars destination ptr
+ *  @param num_trytes number of trytes
+ *  @return ptr position of the end of tryte chars ptr
+ */
+char *int64_to_chars(int64_t value, char *chars, unsigned int num_trytes);
+
+/** @brief Converts an array of chars to a signed 64-bit integer.
+ *  @param chars_in base-27 encoded ternary number
+ *  @param value pointer to signed integer where conversion is stored
+ *  @param len length of the input
+ */
+void chars_to_int64(const char chars_in[], int64_t *value, unsigned int len);
+
 /** @brief Converts a big-endian binary integer into a balanced ternary number
  *         in base-27 encoding.
  *  The input must consist of one or more big-endian 48-byte integers, each
@@ -111,5 +133,18 @@ void bytes_increment_trit_area_81(unsigned char *bytes);
  *  @param summand unsigned number to add
  */
 void bytes_add_u32_mem(unsigned char *bytes, uint32_t summand);
+
+/** @brief Verifies that a character array contains a valid tryte value.
+ *  @param chars_in character array containing tryte value
+ *  @param len length of character array
+ *  @return 0 if validation is successful, negative value otherwise
+ */
+int tryte_chars_validate(const char chars_in[], unsigned int len);
+
+/** @brief Increments by one a tryte value expressed as character array.
+ *  @param chars_in character array containing tryte value
+ *  @param len length of character array
+ */
+void chars_increment(char chars_in[], unsigned int len);
 
 #endif // CONVERSION_H

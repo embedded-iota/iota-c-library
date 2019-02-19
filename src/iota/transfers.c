@@ -18,21 +18,6 @@
 
 #define ZERO_TAG "999999999999999999999999999"
 
-/**
- *
- * @param value the source value
- * @param chars destination ptr
- * @param num_trytes number of trytes
- * @return ptr position of the end of tryte chars ptr
- */
-static char *int64_to_chars(int64_t value, char *chars, unsigned int num_trytes) {
-    trit_t trits[num_trytes * 3];
-    int64_to_trits(value, trits, num_trytes * 3);
-    trits_to_chars(trits, chars, num_trytes * 3);
-
-    return chars + num_trytes;
-}
-
 void iota_wallet_get_address(char seed[81], uint32_t idx, unsigned int security, char address[81]) {
     unsigned char trytes_bytes_buffer[48];
     unsigned char seed_bytes[48];

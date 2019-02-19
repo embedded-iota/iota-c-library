@@ -127,6 +127,22 @@ void trits_to_chars(const trit_t *trits, char *chars, unsigned int trit_len)
     trytes_to_chars(trytes, chars, trit_len / 3);
 }
 
+char *int64_to_chars(int64_t value, char *chars, unsigned int num_trytes) {
+    trit_t trits[num_trytes * 3];
+    int64_to_trits(value, trits, num_trytes * 3);
+    trits_to_chars(trits, chars, num_trytes * 3);
+
+    return chars + num_trytes;
+}
+
+void chars_to_int64(const char chars_in[], int64_t *value, unsigned int len)
+{
+    trit_t trits[len * 3];
+
+    chars_to_trits(chars_in, trits, len);
+    trits_to_int64(trits, sizeof(trits), value);
+}
+
 /** @brief Returns true, if the long little-endian integer represents a negative
  *         number in two's complement.
  */
@@ -346,6 +362,14 @@ bool int64_to_trits(int64_t value, trit_t *trits, unsigned int num_trits)
 
     return value != 0;
 }
+
+void trits_to_int64(trit_t *trits, unsigned int num_trits, int64_t *value)
+{
+    *value = 0;
+    while (num_trits-- > 0) {
+        *value = *value * BASE + trits[num_trits];
+    }
+}
 /* --------------------- END trits > bigint */
 
 /** @brief Converts bigint consisting of 12 words into an array of bytes.
@@ -486,5 +510,37 @@ void bytes_add_u32_mem(unsigned char *bytes, uint32_t summand)
         bigint_add_u32_mem(bigint, summand);
         bigint_set_last_trit_zero(bigint);
         bigint_to_bytes(bigint, bytes);
+    }
+}
+
+int tryte_chars_validate(const char chars_in[], unsigned int len)
+{
+    for (unsigned int i = 0; i < len; i++) {
+        if ((chars_in[i] != '9') &&
+                ((chars_in[i] < 'A') || (chars_in[i] > 'Z'))) {
+            return -1;
+        }
+    }
+    return 0;
+}
+
+void chars_increment(char chars_in[], unsigned int len)
+{
+    for (unsigned int i = 0; i < len; i++) {
+        if (chars_in[i] == '9') {
+            chars_in[i] = 'A';
+            break;
+        }
+        else if (chars_in[i] == 'Z') {
+            chars_in[i] = '9';
+            break;
+        }
+        else if (chars_in[i] == 'M') {
+            chars_in[i] = 'N';
+        }
+        else {
+            chars_in[i]++;
+            break;
+        }
     }
 }
