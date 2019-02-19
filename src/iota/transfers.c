@@ -41,7 +41,9 @@ static char *char_copy(char *destination, const char *source, unsigned int len) 
 static void increment_obsolete_tag(unsigned int tag_increment, iota_wallet_tx_output_t *tx) {
     char extended_tag[81];
     unsigned char tag_bytes[48];
-    rpad_chars(extended_tag, tx->tag, NUM_HASH_TRYTES);
+    rpad_chars(extended_tag, tx->tag, NUM_TAG_TRYTES);
+    memset(extended_tag + NUM_TAG_TRYTES, '9',
+        NUM_HASH_TRYTES - NUM_TAG_TRYTES);
     chars_to_bytes(extended_tag, tag_bytes, NUM_HASH_TRYTES);
 
     bytes_add_u32_mem(tag_bytes, tag_increment);
