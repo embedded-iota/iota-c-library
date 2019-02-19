@@ -148,7 +148,8 @@ static void construct_bundle(
     unsigned int num_inputs = bundle_object_ptr->input_txs_length;
     uint32_t timestamp = bundle_object_ptr->timestamp;
 
-    const unsigned int num_txs = num_outputs + num_inputs * security;
+    const unsigned int num_txs = num_outputs + num_inputs * security +
+            !!bundle_object_ptr->change_tx;
     const unsigned int last_tx_index = num_txs - 1;
 
     bundle_initialize(bundle_ctx, last_tx_index);
@@ -159,6 +160,11 @@ static void construct_bundle(
 
     for (unsigned int i = 0; i < num_inputs; i++) {
         add_input_tx_to_bundle(bundle_ctx, security, timestamp, &inputs[i]);
+    }
+
+    if (bundle_object_ptr->change_tx != NULL) {
+        add_output_tx_to_bundle(bundle_ctx, timestamp,
+                bundle_object_ptr->change_tx);
     }
 
     uint32_t tag_increment = bundle_finalize(bundle_ctx);
@@ -287,7 +293,8 @@ iota_wallet_status_codes_t iota_wallet_create_tx_bundle(
     }
 
     const uint32_t timestamp = bundle_desciption->timestamp;
-    const unsigned int num_txs = num_outputs + num_zeros + num_inputs * security;
+    const unsigned int num_txs = num_outputs + num_zeros + num_inputs * security
+            + !!bundle_desciption->change_tx;
     const unsigned int num_txs_without_security = num_outputs + num_zeros + num_inputs;
     const unsigned int last_tx_index = num_txs - 1;
     const unsigned int last_without_security_tx_index = num_txs_without_security - 1;
@@ -352,6 +359,25 @@ iota_wallet_status_codes_t iota_wallet_create_tx_bundle(
                 next_signature_segment_index);
 
         if(next_signature_segment_index == 0){
+            return BUNDLE_CREATION_TRANSACTION_RECEIVER_ERROR;
+        }
+        idx++;
+    }
+
+    // CHANGE TX OBJECT
+    if (bundle_desciption->change_tx != NULL) {
+        pthread_mutex_lock(&iota_wallet_tx_mutex);
+
+        clear_tx_object_buffer(&tx_object);
+
+        cpy_output_tx_to_tx_object(
+                &tx_object, bundle_desciption->change_tx, last_tx_index,
+                last_tx_index, timestamp);
+
+        if (tx_receiver_ptr(&tx_object)) {
+            pthread_mutex_unlock(&iota_wallet_tx_mutex);
+        } else {
+            pthread_mutex_unlock(&iota_wallet_tx_mutex);
             return BUNDLE_CREATION_TRANSACTION_RECEIVER_ERROR;
         }
     }

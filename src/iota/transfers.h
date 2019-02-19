@@ -48,6 +48,7 @@ typedef struct {
     uint32_t zero_txs_length;
     iota_wallet_tx_input_t * input_txs;
     uint32_t input_txs_length;
+    iota_wallet_tx_output_t * change_tx;
     uint32_t timestamp;
 } iota_wallet_bundle_description_t;
 
