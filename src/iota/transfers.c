@@ -121,6 +121,19 @@ static void add_output_tx_to_bundle(BUNDLE_CTX *ctx, uint32_t timestamp, iota_wa
     bundle_add_tx(ctx, output->value, output->tag, timestamp);
 }
 
+/**
+ *
+ * @param ctx
+ * @param timestamp
+ * @param zero_tx
+ */
+static void add_zero_tx_to_bundle(BUNDLE_CTX *ctx, uint32_t timestamp,
+        iota_wallet_tx_zero_t *zero_tx) {
+    bundle_set_external_address(ctx, zero_tx->address);
+    rpad_chars(zero_tx->tag, zero_tx->tag, NUM_TAG_TRYTES);
+    bundle_add_tx(ctx, 0, zero_tx->tag, timestamp);
+}
+
 static void normalize_bundle_hash(
         tryte_t normalized_bundle_hash_ptr[NUM_HASH_TRYTES],
         BUNDLE_CTX *bundle_ctx, uint32_t tag_increment, char *tag) {
@@ -144,19 +157,25 @@ static void construct_bundle(
     uint8_t security = bundle_object_ptr->security;
     iota_wallet_tx_output_t *outputs = bundle_object_ptr->output_txs;
     unsigned int num_outputs = bundle_object_ptr->output_txs_length;
+    iota_wallet_tx_zero_t *zeros = bundle_object_ptr->zero_txs;
+    unsigned int num_zeros = bundle_object_ptr->zero_txs_length;
     iota_wallet_tx_input_t *inputs = bundle_object_ptr->input_txs;
     unsigned int num_inputs = bundle_object_ptr->input_txs_length;
     uint32_t timestamp = bundle_object_ptr->timestamp;
-    char *tag = outputs[0].tag;
+    char *tag = (num_outputs ? outputs[0].tag : zeros[0].tag);
 
-    const unsigned int num_txs = num_outputs + num_inputs * security +
-            !!bundle_object_ptr->change_tx;
+    const unsigned int num_txs = num_outputs + num_zeros + num_inputs * security
+            + !!bundle_object_ptr->change_tx;
     const unsigned int last_tx_index = num_txs - 1;
 
     bundle_initialize(bundle_ctx, last_tx_index);
 
     for (unsigned int i = 0; i < num_outputs; i++) {
         add_output_tx_to_bundle(bundle_ctx, timestamp, &outputs[i]);
+    }
+
+    for (unsigned int i = 0; i < num_zeros; i++) {
+        add_zero_tx_to_bundle(bundle_ctx, timestamp, &zeros[i]);
     }
 
     for (unsigned int i = 0; i < num_inputs; i++) {
@@ -289,6 +308,9 @@ iota_wallet_status_codes_t iota_wallet_create_tx_bundle(
     char bundle_hash[NUM_HASH_TRYTES];
     tryte_t normalized_bundle_hash_ptr[NUM_HASH_TRYTES];
     BUNDLE_CTX bundle_ctx;
+    if ((num_outputs == 0) && (num_zeros == 0)) {
+        return BUNDLE_CREATION_INVALID;
+    }
     construct_bundle(&bundle_ctx, normalized_bundle_hash_ptr, bundle_desciption);
     bytes_to_chars(bundle_get_hash(&bundle_ctx), bundle_hash, NUM_HASH_BYTES);
 
