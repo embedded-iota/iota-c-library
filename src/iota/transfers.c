@@ -61,7 +61,7 @@ void iota_wallet_construct_raw_transaction_chars(char * buffer, char *bundle_has
     clear_transaction_char_buffer(buffer);
     char *c = buffer;
 
-    c = char_copy(c, tx->signatureMessageFragment, 2187);
+    c = char_copy(c, tx->signatureMessageFragment, NUM_SIG_MSG_TRYTES);
     c = char_copy(c, tx->address, NUM_ADDR_TRYTES);
     c = int64_to_chars(tx->value, c, 27);
     c = char_copy(c, tx->obsoleteTag, NUM_TAG_TRYTES);
@@ -81,7 +81,7 @@ static void clear_tx_object_buffer(iota_wallet_tx_object_t *tx_object) {
     memset(tx_object->address, '9', NUM_ADDR_TRYTES);
     memset(tx_object->obsoleteTag, '9', NUM_TAG_TRYTES);
     memset(tx_object->tag, '9', NUM_TAG_TRYTES);
-    memset(tx_object->signatureMessageFragment, '9', 2187);
+    memset(tx_object->signatureMessageFragment, '9', NUM_SIG_MSG_TRYTES);
 
     tx_object->timestamp = 0;
     tx_object->value = 0;
@@ -204,7 +204,8 @@ static void cpy_zero_tx_to_tx_object(
         iota_wallet_tx_object_t *tx_object, iota_wallet_tx_zero_t *zero,
         uint32_t index, uint32_t last_index, uint32_t timestamp) {
 
-    rpad_chars(tx_object->signatureMessageFragment, zero->message, 2187);
+    rpad_chars(tx_object->signatureMessageFragment, zero->message,
+            NUM_SIG_MSG_TRYTES);
     memcpy(tx_object->address, zero->address, NUM_ADDR_TRYTES);
     tx_object->value = 0;
     rpad_chars(tx_object->obsoleteTag, zero->tag, NUM_TAG_TRYTES);
@@ -248,7 +249,8 @@ static uint32_t construct_singature_for_input_tx(
 
         if (tx_receiver_ptr(tx_object)) {
             pthread_mutex_unlock(&iota_wallet_tx_mutex);
-            memset(tx_object->signatureMessageFragment, '9', 2187);
+            memset(tx_object->signatureMessageFragment, '9',
+                    NUM_SIG_MSG_TRYTES);
         } else {
             pthread_mutex_unlock(&iota_wallet_tx_mutex);
             return 0;

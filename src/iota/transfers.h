@@ -11,7 +11,7 @@ typedef enum {
 } iota_wallet_status_codes_t;
 
 typedef struct {
-    char signatureMessageFragment[2187];
+    char signatureMessageFragment[NUM_SIG_MSG_TRYTES];
     char address[NUM_ADDR_TRYTES];
     int64_t value;
     char obsoleteTag[NUM_TAG_TRYTES];
@@ -29,7 +29,7 @@ typedef struct {
 
 typedef struct {
     char address[NUM_ADDR_TRYTES];
-    char message[2187];
+    char message[NUM_SIG_MSG_TRYTES];
     char tag[NUM_TAG_TRYTES];
 } iota_wallet_tx_zero_t;
 

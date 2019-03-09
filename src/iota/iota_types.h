@@ -30,6 +30,9 @@ typedef int8_t tryte_t;
 #define NUM_TRANSACTION_TRITS 8019
 #define NUM_TRANSACTION_TRYTES 2673
 
+#define NUM_SIG_MSG_TRITS 6561
+#define NUM_SIG_MSG_TRYTES 2187
+
 #define NUM_TAG_TRITS 81
 #define NUM_TAG_TRYTES 27
 
