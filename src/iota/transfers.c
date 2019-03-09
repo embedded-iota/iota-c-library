@@ -36,12 +36,12 @@ static char *char_copy(char *destination, const char *source, unsigned int len) 
 /**
  * @brief M (13) bug tag increment.
  * @param tag_increment
- * @param tx the transaction where the tag will get incremented
+ * @param tag the tag to be incremented
  */
-static void increment_obsolete_tag(unsigned int tag_increment, iota_wallet_tx_output_t *tx) {
+static void increment_obsolete_tag(unsigned int tag_increment, char *tag) {
     char extended_tag[81];
     unsigned char tag_bytes[48];
-    rpad_chars(extended_tag, tx->tag, NUM_TAG_TRYTES);
+    rpad_chars(extended_tag, tag, NUM_TAG_TRYTES);
     memset(extended_tag + NUM_TAG_TRYTES, '9',
         NUM_HASH_TRYTES - NUM_TAG_TRYTES);
     chars_to_bytes(extended_tag, tag_bytes, NUM_HASH_TRYTES);
@@ -49,7 +49,7 @@ static void increment_obsolete_tag(unsigned int tag_increment, iota_wallet_tx_ou
     bytes_add_u32_mem(tag_bytes, tag_increment);
     bytes_to_chars(tag_bytes, extended_tag, 48);
 
-    memcpy(tx->tag, extended_tag, 27);
+    memcpy(tag, extended_tag, 27);
 }
 
 static void clear_transaction_char_buffer(char *buffer) {
@@ -123,9 +123,9 @@ static void add_output_tx_to_bundle(BUNDLE_CTX *ctx, uint32_t timestamp, iota_wa
 
 static void normalize_bundle_hash(
         tryte_t normalized_bundle_hash_ptr[NUM_HASH_TRYTES],
-        BUNDLE_CTX *bundle_ctx, uint32_t tag_increment, iota_wallet_tx_output_t *increment_output) {
+        BUNDLE_CTX *bundle_ctx, uint32_t tag_increment, char *tag) {
 
-    increment_obsolete_tag(tag_increment, increment_output);
+    increment_obsolete_tag(tag_increment, tag);
     bundle_get_normalized_hash(bundle_ctx, normalized_bundle_hash_ptr);
 }
 
@@ -147,6 +147,7 @@ static void construct_bundle(
     iota_wallet_tx_input_t *inputs = bundle_object_ptr->input_txs;
     unsigned int num_inputs = bundle_object_ptr->input_txs_length;
     uint32_t timestamp = bundle_object_ptr->timestamp;
+    char *tag = outputs[0].tag;
 
     const unsigned int num_txs = num_outputs + num_inputs * security +
             !!bundle_object_ptr->change_tx;
@@ -168,7 +169,8 @@ static void construct_bundle(
     }
 
     uint32_t tag_increment = bundle_finalize(bundle_ctx);
-    normalize_bundle_hash(normalized_bundle_hash_ptr, bundle_ctx, tag_increment, &outputs[0]);
+    normalize_bundle_hash(normalized_bundle_hash_ptr, bundle_ctx, tag_increment,
+            tag);
 }
 
 /**
