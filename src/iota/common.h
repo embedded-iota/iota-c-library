@@ -83,4 +83,24 @@ static inline void cx_hash(SHA3_CTX* hash, int mode, const unsigned char *in,
 bool in_range(int x, int min, int max);
 size_t common_strnlen( const char * s, size_t maxlen );
 
+#ifdef IOTA_THREADSAFE
+
+#include <pthread.h>
+
+typedef pthread_mutex_t mutex_t;
+
+#define mutex_init pthread_mutex_init
+#define mutex_lock pthread_mutex_lock
+#define mutex_unlock pthread_mutex_unlock
+
+#else
+
+typedef int mutex_t;	/* dummy type */
+
+#define mutex_init(mutex, attrs) do {} while (0)
+#define mutex_lock(mutex) do {} while (0)
+#define mutex_unlock(mutex) do {} while (0)
+
+#endif
+
 #endif // COMMON_H

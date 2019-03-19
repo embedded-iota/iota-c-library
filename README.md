@@ -8,8 +8,8 @@ API might change over time. Don't use it in production environments!
 This library is designed to make it possible to use IOTA on really small embedded devices.
 The library has the following attributes:
 
-- POSIX compatible Threads (pthread)
-- Thread-safe
+- Thread-safe (optional feature, enabled with the IOTA_THREADSAFE pre-processor
+  definition; if enabled, it uses POSIX mutexes)
 - Low footprint
 - Usable on devices without MMU
 - C99 compliant 
